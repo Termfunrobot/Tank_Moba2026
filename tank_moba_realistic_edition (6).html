@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tank MOBA - สงครามรถถังแดนนรก (Realistic)</title>
+    <style>
+        body { 
+            margin: 0; 
+            background: #050508; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden;
+            color: #d2dae2; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            user-select: none;
+        }
+        /* ปรับพื้นหลังให้ดูเป็นสมรภูมิคอนกรีต/โลหะ สไตล์ Sci-Fi */
+        canvas#gameCanvas { 
+            background-color: #1a1a24;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 98px, rgba(100, 110, 130, 0.1) 98px, rgba(100, 110, 130, 0.1) 100px),
+                repeating-linear-gradient(90deg, transparent, transparent 98px, rgba(100, 110, 130, 0.1) 98px, rgba(100, 110, 130, 0.1) 100px),
+                radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 100%);
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair; 
+        }
+        
+        #mainMenu {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        #mainMenu h1 {
+            font-size: 5em;
+            color: #00d2d3;
+            text-shadow: 0 0 20px rgba(0, 210, 211, 0.5);
+            margin-bottom: 20px;
+            font-weight: 900;
+            letter-spacing: 5px;
+        }
+        .menu-box {
+            background: rgba(20, 25, 35, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid #00d2d3;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 210, 211, 0.2);
+            min-width: 400px;
+        }
+        .menu-box label {
+            font-size: 1.2em;
+            display: block;
+            margin-bottom: 10px;
+            color: #00d2d3;
+            text-align: left;
+            font-weight: bold;
+        }
+        .menu-box select {
+            font-size: 1.1em;
+            padding: 10px;
+            width: 100%;
+            margin-bottom: 25px;
+            background: #111;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 5px;
+        }
+        .menu-box button {
+            font-size: 1.5em;
+            padding: 15px 50px;
+            background: linear-gradient(45deg, #0984e3, #00d2d3);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 210, 211, 0.4);
+            width: 100%;
+            margin-top: 10px;
+        }
+        .menu-box button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 210, 211, 0.7);
+        }
+
+        .ui { position: absolute; top: 20px; left: 20px; z-index: 10; pointer-events: none; display: none; }
+        h2 { margin: 0 0 5px 0; color: #00d2d3; text-shadow: 0 0 10px rgba(0,210,211,0.5); font-weight: 900;}
+        .stat { color: #fff; font-weight: bold; font-size: 1.2em; text-shadow: 1px 1px 2px #000; margin-bottom: 5px;}
+        .hp-text { color: #2ecc71; }
+        .gold-text { color: #f1c40f; }
+        
+        .objective-ui { position: absolute; top: 20px; right: 20px; text-align: right; pointer-events: none; display: none; }
+        .base-hp { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; }
+        .ally-base { color: #00d2d3; }
+        .enemy-base { color: #ff4757; }
+
+        .weapon-ui { position: absolute; bottom: 100px; left: 20px; font-size: 1.2em; font-weight: bold; color: #00d2d3; text-shadow: 0 0 5px #000; display: none; }
+        
+        #gameMessage { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 3em; font-weight: bold; text-shadow: 4px 4px 10px #000; display: none; z-index: 100; text-align: center; color: #f1c40f;}
+        
+        #miniMap { position: absolute; bottom: 20px; right: 20px; border: 2px solid #333; background: rgba(10,15,20,0.8); z-index: 20; display: none; border-radius: 5px; pointer-events: none; box-shadow: 0 0 15px rgba(0,0,0,0.8);}
+
+        .skills-ui { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 15px; z-index: 10; pointer-events: none;}
+        .skill-box { width: 60px; height: 60px; background: rgba(10,15,20,0.8); border: 2px solid #333; border-radius: 5px; position: relative; display: flex; justify-content: center; align-items: center; font-size: 2em; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);}
+        .skill-box.ready { border-color: #00d2d3; box-shadow: 0 0 15px rgba(0, 210, 211, 0.4); }
+        .skill-key { position: absolute; top: -5px; left: -5px; background: #fff; color: #000; font-size: 0.4em; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; z-index: 2;}
+        .cooldown-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(0,0,0,0.8); transition: height 0.1s linear; display: flex; justify-content: center; align-items: center; color: white; font-size: 0.4em; font-weight: bold; z-index: 1;}
+    </style>
+</head>
+<body>
+
+    <div id="mainMenu">
+        <h1>TANK MOBA</h1>
+        <div class="menu-box">
+            <label for="tankSelect">เลือกรุ่นรถถัง (Class):</label>
+            <select id="tankSelect">
+                <option value="striker" selected>💥 STRIKER - เน้นโจมตี (ดาเมจสูง)</option>
+                <option value="juggernaut">🛡️ JUGGERNAUT - เน้นถึกทน (เกราะหนา)</option>
+                <option value="phantom">⚡ PHANTOM - เน้นความเร็ว (คล่องตัว)</option>
+            </select>
+
+            <label for="diffSelect">เลือกระดับความยาก:</label>
+            <select id="diffSelect">
+                <option value="0.7">ระดับง่าย (บอส 1 คัน)</option>
+                <option value="1.0" selected>ระดับปานกลาง (บอส 2 คัน)</option>
+                <option value="1.5">ระดับยาก (บอส 3 คัน)</option>
+            </select>
+            <button onclick="startGame()">DEPLOY</button>
+        </div>
+    </div>
+
+    <div class="ui" id="uiLeft">
+        <h2>ARMOR STATUS</h2>
+        <div class="stat hp-text">INTEGRITY: <span id="playerHp">1000</span> / <span id="playerMaxHp">1000</span></div>
+        <div class="stat">TECH LVL: <span id="playerLevel">1</span> (XP: <span id="playerXp">0</span>/100)</div>
+        <div class="stat gold-text">CREDITS: <span id="playerGold">0</span></div>
+    </div>
+
+    <div class="objective-ui" id="uiRight">
+        <div class="base-hp ally-base">ALLIED HQ: <span id="allyBaseHp">10000</span></div>
+        <div class="base-hp enemy-base">ENEMY HQ: <span id="enemyBaseHp">10000</span></div>
+    </div>
+
+    <div class="weapon-ui" id="weaponUI">SYS: AUTO-WEAPON | REPAIR READY (Press Space)</div>
+
+    <div class="skills-ui" id="skillsUI">
+        <div class="skill-box" id="skill1">
+            <div class="skill-key">1</div>
+            <div class="skill-icon">🛡️</div>
+            <div class="cooldown-overlay" id="cd1"></div>
+        </div>
+        <div class="skill-box" id="skill2">
+            <div class="skill-key">2</div>
+            <div class="skill-icon">⚡</div>
+            <div class="cooldown-overlay" id="cd2"></div>
+        </div>
+        <div class="skill-box" id="skill3">
+            <div class="skill-key">3</div>
+            <div class="skill-icon">💣</div>
+            <div class="cooldown-overlay" id="cd3"></div>
+        </div>
+    </div>
+
+    <div id="gameMessage"></div>
+
+    <canvas id="gameCanvas"></canvas>
+    <canvas id="miniMap" width="200" height="200"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const mapCanvas = document.getElementById('miniMap');
+        const mapCtx = mapCanvas.getContext('2d');
+        
+        let gameState = 'MENU'; 
+        let difficultyMultiplier = 1.0;
+        let cameraZoom = 1.0; 
+
+        let audioCtx;
+        const SoundFX = {
+            init: function() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } else if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            },
+            playTone: function(freq, type, duration, vol, slideFreq) {
+                if(!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                if(slideFreq) {
+                    osc.frequency.exponentialRampToValueAtTime(slideFreq, audioCtx.currentTime + duration);
+                }
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            },
+            shoot: function() { this.playTone(600, 'square', 0.1, 0.02, 200); }, 
+            kill: function() { this.playTone(150, 'sawtooth', 0.15, 0.05, 50); }, 
+            levelUp: function() { 
+                this.playTone(440, 'sine', 0.1, 0.1);
+                setTimeout(() => this.playTone(554, 'sine', 0.1, 0.1), 100);
+                setTimeout(() => this.playTone(659, 'sine', 0.2, 0.1), 200);
+                setTimeout(() => this.playTone(880, 'sine', 0.4, 0.1), 300);
+            },
+            death: function() { 
+                this.playTone(200, 'sawtooth', 0.5, 0.1, 50);
+                setTimeout(() => this.playTone(150, 'sawtooth', 0.8, 0.1, 20), 400);
+            },
+            bossSpawn: function() { 
+                this.playTone(150, 'square', 0.5, 0.1, 100);
+                setTimeout(() => this.playTone(120, 'square', 0.8, 0.1, 50), 500);
+            }
+        };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const MAP_SIZE = 3000;
+        const ALLY_BASE_POS = { x: 300, y: 2700 };
+        const ENEMY_BASE_POS = { x: 2700, y: 300 };
+
+        const PATHS = {
+            'top': [ {x: 300, y: 300}, ENEMY_BASE_POS ],
+            'mid': [ {x: 1500, y: 1500}, ENEMY_BASE_POS ],
+            'bot': [ {x: 2700, y: 2700}, ENEMY_BASE_POS ]
+        };
+
+        function sqr(x) { return x * x }
+        function dist2(v, w) { return sqr(v.x - w.x) + sqr(v.y - w.y) }
+        function distToSegmentSquared(p, v, w) {
+            let l2 = dist2(v, w);
+            if (l2 === 0) return dist2(p, v);
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return dist2(p, { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) });
+        }
+        function distToSegment(p, v, w) { return Math.sqrt(distToSegmentSquared(p, v, w)); }
+
+        const keys = {};
+        const mouse = { x: canvas.width/2, y: canvas.height/2 };
+        let cameraX = 0, cameraY = 0;
+        
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if (gameState === 'PLAYING' && tank) {
+                if (e.code === 'Space') {
+                    let now = Date.now();
+                    if (!tank.lastSpaceHeal || now - tank.lastSpaceHeal > 10000) { 
+                        let healAmount = Math.floor(tank.maxHp * 0.3); 
+                        tank.hp = Math.min(tank.maxHp, tank.hp + healAmount);
+                        floatingTexts.push(new FloatingText(tank.x, tank.y - 40, `+${healAmount} REPAIR`, "#2ecc71"));
+                        tank.lastSpaceHeal = now;
+                        SoundFX.playTone(400, 'sine', 0.3, 0.1, 600); 
+                        for(let i=0; i<15; i++) particles.push(new BuffParticle(tank.x, tank.y, '#2ecc71'));
+                    } else {
+                        let remaining = Math.ceil((10000 - (now - tank.lastSpaceHeal)) / 1000);
+                        showMessage(`REPAIR RECHARGING (${remaining}s)`, '#ff4757', 1000);
+                    }
+                }
+                
+                if (e.code === 'Digit1') tank.useSkill(1);
+                if (e.code === 'Digit2') tank.useSkill(2);
+                if (e.code === 'Digit3') tank.useSkill(3);
+            }
+        });
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        
+        canvas.addEventListener('mousemove', e => {
+            mouse.x = e.clientX; mouse.y = e.clientY;
+        });
+
+        window.addEventListener('contextmenu', e => {
+            e.preventDefault(); 
+            if(!tank || gameState !== 'PLAYING' || !tank.isActive) return;
+            
+            let worldMouseX = (e.clientX / cameraZoom) + cameraX;
+            let worldMouseY = (e.clientY / cameraZoom) + cameraY;
+            
+            tank.setWaypoint(worldMouseX, worldMouseY);
+            clickIndicators.push(new ClickIndicator(worldMouseX, worldMouseY));
+        });
+
+        window.addEventListener('wheel', e => {
+            if (gameState !== 'PLAYING') return;
+            if (e.deltaY < 0) cameraZoom *= 1.1; 
+            else cameraZoom /= 1.1; 
+            cameraZoom = Math.max(0.4, Math.min(cameraZoom, 1.5)); 
+        });
+
+        const WEAPONS = [
+            { name: 'KINETIC SABOT', speed: 18, damage: 45, fireRate: 600, color: '#f39c12', spread: 1, unlockAt: 1 },
+            { name: 'ION PIERCER', speed: 28, damage: 65, fireRate: 400, color: '#00d2d3', spread: 1, unlockAt: 3, isLightning: true },
+            { name: 'PLASMA REPEATER', speed: 20, damage: 25, fireRate: 150, color: '#ff4757', spread: 2, unlockAt: 5 }
+        ];
+        let currentWeaponIndex = 0;
+
+        function showMessage(text, color = '#f1c40f', duration = 3000) {
+            const msg = document.getElementById('gameMessage');
+            msg.innerText = text;
+            msg.style.color = color;
+            msg.style.display = 'block';
+            if (duration > 0) {
+                setTimeout(() => {
+                    if (gameState === 'PLAYING') msg.style.display = 'none';
+                }, duration);
+            }
+        }
+
+        function processKillReward(ent) {
+            SoundFX.kill(); 
+            if (ent instanceof Minion) {
+                tank.gainXP(30); tank.gold += 15;
+            } else if (ent instanceof BossTank) {
+                tank.gainXP(300); tank.gold += 200;
+                ent.deathCount++;
+                ent.respawnTime += 10000; 
+                ent.respawnTimer = Date.now() + ent.respawnTime;
+                showMessage(`🎯 TARGET NEUTRALIZED! Respawn in ${ent.respawnTime/1000}s`, '#00d2d3', 4000);
+            } else if (ent instanceof Turret) {
+                tank.gainXP(200); tank.gold += 150;
+            }
+            document.getElementById('playerGold').innerText = tank.gold;
+        }
+
+        function handlePlayerDeath(playerEnt) {
+            playerEnt.respawnTimer = Date.now() + 5000;
+            SoundFX.death(); 
+        }
+
+        function handleGameOver(losingTeam) {
+            gameState = 'GAMEOVER';
+            let countdown = 30;
+            let baseText = losingTeam === 'enemy' ? 'MISSION ACCOMPLISHED' : 'CRITICAL FAILURE';
+            let color = losingTeam === 'enemy' ? '#00d2d3' : '#ff4757';
+            
+            const msgEl = document.getElementById('gameMessage');
+            msgEl.style.color = color;
+            msgEl.style.display = 'block';
+            msgEl.innerHTML = `${baseText}<br><span style="font-size: 0.5em; color: #fff;">กลับสู่ฐานทัพใน ${countdown} วินาที</span>`;
+            
+            let countdownInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    msgEl.innerHTML = `${baseText}<br><span style="font-size: 0.5em; color: #fff;">กลับสู่ฐานทัพใน ${countdown} วินาที</span>`;
+                } else {
+                    clearInterval(countdownInterval);
+                    msgEl.style.display = 'none';
+                    document.getElementById('mainMenu').style.display = 'flex';
+                }
+            }, 1000);
+        }
+
+        // --- GRAPHICS HELPER FUNCTIONS ---
+        function drawMetallicRect(ctx, x, y, w, h, baseColorLight, baseColorDark) {
+            let grad = ctx.createLinearGradient(x, y, x + w, y + h);
+            grad.addColorStop(0, baseColorLight);
+            grad.addColorStop(1, baseColorDark);
+            ctx.fillStyle = grad;
+            ctx.fillRect(x, y, w, h);
+            
+            // Highlight
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, w, h);
+        }
+
+        function drawChamferedRect(ctx, x, y, w, h, chamfer, fillStyle, strokeStyle) {
+            ctx.beginPath();
+            ctx.moveTo(x + chamfer, y);
+            ctx.lineTo(x + w - chamfer, y);
+            ctx.lineTo(x + w, y + chamfer);
+            ctx.lineTo(x + w, y + h - chamfer);
+            ctx.lineTo(x + w - chamfer, y + h);
+            ctx.lineTo(x + chamfer, y + h);
+            ctx.lineTo(x, y + h - chamfer);
+            ctx.lineTo(x, y + chamfer);
+            ctx.closePath();
+            
+            if(fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+            if(strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = 2; ctx.stroke(); }
+        }
+
+        class Entity {
+            constructor(x, y, radius, team, hp, maxHp) {
+                this.x = x; this.y = y; this.radius = radius;
+                this.team = team;
+                this.hp = hp; this.maxHp = maxHp;
+                this.isActive = true;
+                this.isStealth = false; 
+            }
+            drawHealthBar(ctx, offsetY = 20) {
+                const width = this.radius * 2;
+                const hpPercent = Math.max(0, this.hp / this.maxHp);
+                ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                ctx.fillRect(this.x - width/2, this.y - this.radius - offsetY, width, 6);
+                ctx.fillStyle = this.team === 'ally' ? '#00d2d3' : '#ff4757';
+                ctx.fillRect(this.x - width/2, this.y - this.radius - offsetY, width * hpPercent, 6);
+                // Grid lines for tech look
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                for(let i=1; i<=4; i++) {
+                    ctx.fillRect(this.x - width/2 + (width * (i/5)) - 1, this.y - this.radius - offsetY, 2, 6);
+                }
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text, color) {
+                this.x = x; this.y = y; this.text = text; this.color = color;
+                this.life = 1.0; this.vy = -1.5; 
+            }
+            update() { this.y += this.vy; this.life -= 0.02; }
+            draw(ctx) {
+                if (this.life <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.font = 'bold 20px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        class ClickIndicator {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = 30; this.alpha = 1.0;
+            }
+            update() {
+                this.radius -= 1.5;
+                if (this.radius < 0) this.radius = 0; 
+                this.alpha -= 0.05;
+            }
+            draw(ctx) {
+                if (this.alpha <= 0 || this.radius <= 0) return;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(0, 210, 211, ${this.alpha})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // Inner cross
+                ctx.beginPath();
+                ctx.moveTo(-this.radius/2, 0); ctx.lineTo(this.radius/2, 0);
+                ctx.moveTo(0, -this.radius/2); ctx.lineTo(0, this.radius/2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class Smoke {
+            constructor(x, y) {
+                this.x = x + (Math.random() - 0.5) * 40;
+                this.y = y + (Math.random() - 0.5) * 40;
+                this.size = Math.random() * 8 + 5;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.02 + 0.01;
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = -Math.random() * 1.5 - 0.5;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.size += 0.4; this.life -= this.decay;
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = 'rgba(50, 50, 55, 0.8)';
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class BuffParticle {
+            constructor(x, y, color = '#00d2d3') {
+                this.x = x + (Math.random() - 0.5) * 40;
+                this.y = y + (Math.random() - 0.5) * 40;
+                this.size = Math.random() * 3 + 1;
+                this.life = 1.0;
+                this.vy = -Math.random() * 3 - 1;
+                this.color = color;
+            }
+            update() {
+                this.y += this.vy; this.life -= 0.04;
+            }
+            draw(ctx) {
+                if(this.life <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size*3); // look like rising data streams
+                ctx.restore();
+            }
+        }
+
+        class ArtilleryStrike {
+            constructor(x, y, team, damage) {
+                this.x = x; this.y = y; this.team = team; this.radius = 350; this.damage = damage;
+                this.startTime = Date.now(); this.delay = 1500; this.exploded = false; this.isActive = true; this.explosionDuration = 3500;
+                this.lastDamageTime = 0;
+            }
+            update(allEntities) {
+                let now = Date.now();
+                if (!this.exploded && now - this.startTime >= this.delay) {
+                    this.explode(allEntities);
+                } else if (this.exploded && now - this.startTime >= this.delay + this.explosionDuration) {
+                    this.isActive = false;
+                } else if (this.exploded) {
+                    if (now - this.lastDamageTime > 500) {
+                        this.dealDamage(allEntities, this.damage * 0.4);
+                        this.lastDamageTime = now;
+                        for(let i=0; i<15; i++) particles.push(new Smoke(this.x + (Math.random()-0.5)*this.radius, this.y + (Math.random()-0.5)*this.radius));
+                    }
+                }
+            }
+            explode(allEntities) {
+                this.exploded = true;
+                this.lastDamageTime = Date.now();
+                SoundFX.playTone(50, 'sawtooth', 2.0, 0.3, 20); 
+                this.dealDamage(allEntities, this.damage);
+
+                for(let i=0; i<80; i++) {
+                    let angle = Math.random() * Math.PI * 2;
+                    let dist = Math.random() * this.radius;
+                    let px = this.x + Math.cos(angle) * dist;
+                    let py = this.y + Math.sin(angle) * dist;
+                    particles.push(new Smoke(px, py));
+                }
+            }
+            dealDamage(allEntities, dmgAmount) {
+                allEntities.forEach(ent => {
+                    if (ent.team !== this.team && ent.isActive && ent.hp > 0) {
+                        let dist = Math.hypot(ent.x - this.x, ent.y - this.y);
+                        if (dist < this.radius + ent.radius) {
+                            
+                            // Check for player shield
+                            if (ent === tank && tank.skills[1].active) {
+                                floatingTexts.push(new FloatingText(ent.x, ent.y, `BLOCKED`, "#3498db"));
+                            } else {
+                                ent.hp -= dmgAmount;
+                                floatingTexts.push(new FloatingText(ent.x, ent.y, `-${Math.floor(dmgAmount)}`, "#ff4757"));
+                                if (ent.hp <= 0) {
+                                    ent.hp = 0; ent.isActive = false;
+                                    if (ent instanceof Base) handleGameOver(ent.team);
+                                    else if (ent instanceof Tank) handlePlayerDeath(ent);
+                                    else if (this.team === 'ally') processKillReward(ent);
+                                }
+                            }
+                            
+                        }
+                    }
+                });
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                let now = Date.now();
+                if (!this.exploded) {
+                    let elapsed = now - this.startTime;
+                    let pct = elapsed / this.delay;
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 71, 87, ${0.1 + pct * 0.3})`;
+                    ctx.fill();
+                    ctx.strokeStyle = '#ff4757';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([20, 15]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    let scale = 1 - pct;
+                    let crosshairSize = this.radius * scale + 40;
+                    ctx.beginPath();
+                    ctx.moveTo(-crosshairSize, 0); ctx.lineTo(-20, 0);
+                    ctx.moveTo(crosshairSize, 0); ctx.lineTo(20, 0);
+                    ctx.moveTo(0, -crosshairSize); ctx.lineTo(0, -20);
+                    ctx.moveTo(0, crosshairSize); ctx.lineTo(0, 20);
+                    ctx.stroke();
+                } else {
+                    let elapsed = now - (this.startTime + this.delay);
+                    let pct = 1 - (elapsed / this.explosionDuration);
+                    if (pct < 0) pct = 0;
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius * 0.9 * pct, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${pct})`;
+                    ctx.shadowBlur = 50;
+                    ctx.shadowColor = '#ff4757';
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    let grad = ctx.createRadialGradient(0,0,this.radius*0.2, 0,0, this.radius);
+                    grad.addColorStop(0, `rgba(255, 200, 0, ${pct})`);
+                    grad.addColorStop(0.5, `rgba(255, 71, 87, ${pct * 0.8})`);
+                    grad.addColorStop(1, `rgba(255, 71, 87, 0)`);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                    
+                    ctx.fillStyle = `rgba(255, 71, 87, ${pct * 0.8})`;
+                    ctx.fillRect(-this.radius*0.5, -3000, this.radius, 3000);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${pct})`;
+                    ctx.fillRect(-this.radius*0.2, -3000, this.radius*0.4, 3000);
+                }
+                ctx.restore();
+            }
+        }
+
+        class Base extends Entity {
+            constructor(x, y, team) {
+                super(x, y, 90, team, 10000, 10000);
+                this.color = team === 'ally' ? '#00d2d3' : '#ff4757';
+                this.pulse = 0;
+            }
+            draw() {
+                this.pulse += 0.05;
+                let glow = Math.sin(this.pulse) * 10 + 15;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Range Indicator
+                ctx.fillStyle = this.team === 'ally' ? 'rgba(0, 210, 211, 0.05)' : 'rgba(255, 71, 87, 0.05)'; 
+                ctx.beginPath(); ctx.arc(0, 0, 300, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = this.team === 'ally' ? 'rgba(0, 210, 211, 0.3)' : 'rgba(255, 71, 87, 0.3)';
+                ctx.lineWidth = 1; ctx.setLineDash([5, 10]); ctx.stroke(); ctx.setLineDash([]);
+
+                // Sci-fi Base Structure (Octagon)
+                ctx.shadowBlur = 20; ctx.shadowColor = "rgba(0,0,0,0.8)";
+                drawChamferedRect(ctx, -70, -70, 140, 140, 30, '#1a1f24', '#333');
+                drawChamferedRect(ctx, -55, -55, 110, 110, 20, '#232931', '#111');
+                
+                // Tech lines
+                ctx.strokeStyle = '#444'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(70, 0); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -70); ctx.lineTo(0, 70); ctx.stroke();
+
+                // Core
+                ctx.shadowBlur = glow; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI * 2); ctx.fill();
+                
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+                
+                ctx.restore();
+                this.drawHealthBar(ctx, 30);
+            }
+        }
+
+        class Turret extends Entity {
+            constructor(x, y, team) {
+                let maxH = team === 'enemy' ? 40000 * difficultyMultiplier : 40000;
+                super(x, y, 40, team, maxH, maxH);
+                this.color = team === 'ally' ? '#00d2d3' : '#ff4757';
+                this.attackRange = 400;
+                this.damage = team === 'enemy' ? 1000 * difficultyMultiplier : 1000;
+                this.lastAttack = 0;
+                this.attackSpeed = 1000;
+                this.turretAngle = 0;
+            }
+
+            update(entities) {
+                if (!this.isActive) return;
+
+                let damagePercent = 1 - (this.hp / this.maxHp);
+                if (damagePercent > 0) {
+                    if (Math.random() < damagePercent * 0.3) particles.push(new Smoke(this.x, this.y));
+                }
+
+                let nearestTarget = null;
+                let minDist = this.attackRange;
+
+                entities.forEach(ent => {
+                    if (ent.team !== this.team && ent.isActive && ent.hp > 0 && !(ent instanceof Projectile) && !ent.isStealth) {
+                        let d = Math.hypot(ent.x - this.x, ent.y - this.y);
+                        if (d < minDist) { minDist = d; nearestTarget = ent; }
+                    }
+                });
+
+                if (nearestTarget) {
+                    this.turretAngle = Math.atan2(nearestTarget.y - this.y, nearestTarget.x - this.x);
+                    const now = Date.now();
+                    if (now - this.lastAttack > this.attackSpeed) {
+                        projectiles.push(new Projectile(this.x, this.y, this.turretAngle, this.team, 12, this.damage, this.color, true));
+                        this.lastAttack = now;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Base
+                ctx.shadowBlur = 10; ctx.shadowColor = '#000';
+                drawChamferedRect(ctx, -this.radius, -this.radius, this.radius*2, this.radius*2, 10, '#1e272e', '#111');
+                
+                // Turret Head
+                if (this.turretAngle) ctx.rotate(this.turretAngle);
+                
+                // Gun barrel
+                drawMetallicRect(ctx, 0, -6, 50, 12, '#485460', '#1e272e');
+                // Barrel glow
+                ctx.shadowBlur = 5; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+                ctx.fillRect(20, -2, 25, 4);
+                
+                // Head dome
+                ctx.shadowBlur = 0;
+                ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                let grad = ctx.createRadialGradient(0,0,0, 0,0,20);
+                grad.addColorStop(0, '#576574'); grad.addColorStop(1, '#222f3e');
+                ctx.fillStyle = grad; ctx.fill();
+                
+                // Center eye
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(5, 0, 8, 0, Math.PI * 2); ctx.fill();
+                
+                ctx.restore();
+                this.drawHealthBar(ctx, 20);
+            }
+        }
+
+        // หุ่นยนต์รบ (Android)
+        class Minion extends Entity {
+            constructor(x, y, team, lane) {
+                let mHp = team === 'enemy' ? 300 * difficultyMultiplier : 300;
+                super(x, y, 16, team, mHp, mHp);
+                this.lane = lane;
+                this.waypoints = team === 'ally' ? [...PATHS[lane]] : [...PATHS[lane]].reverse();
+                if (team === 'enemy') this.waypoints.push({x: ALLY_BASE_POS.x, y: ALLY_BASE_POS.y});
+                
+                this.offsetX = (Math.random() - 0.5) * 50;
+                this.offsetY = (Math.random() - 0.5) * 50;
+                
+                this.currentWp = 0;
+                this.speed = 1.0 + Math.random()*0.5;
+                this.attackRange = 180;
+                this.damage = team === 'enemy' ? 15 * difficultyMultiplier : 15;
+                this.lastAttack = 0;
+                this.attackSpeed = 1000;
+                this.color = team === 'ally' ? '#00d2d3' : '#ff4757';
+                this.aimAngle = 0;
+                this.isMobile = true; 
+                this.legPhase = Math.random() * Math.PI; 
+            }
+
+            update(entities) {
+                if(!this.isActive) return;
+
+                let nearestTarget = null;
+                let minDist = this.attackRange;
+
+                entities.forEach(ent => {
+                    if (ent.team !== this.team && ent.isActive && ent.hp > 0 && !(ent instanceof Projectile) && !ent.isStealth) {
+                        let d = Math.hypot(ent.x - this.x, ent.y - this.y);
+                        if (d < minDist) { minDist = d; nearestTarget = ent; }
+                    }
+                });
+
+                if (nearestTarget) {
+                    this.aimAngle = Math.atan2(nearestTarget.y - this.y, nearestTarget.x - this.x);
+                    const now = Date.now();
+                    if (now - this.lastAttack > this.attackSpeed) {
+                        let ox = this.x + Math.cos(this.aimAngle)*20;
+                        let oy = this.y + Math.sin(this.aimAngle)*20;
+                        projectiles.push(new Projectile(ox, oy, this.aimAngle, this.team, 15, this.damage, this.color, false));
+                        this.lastAttack = now;
+                    }
+                } else {
+                    let targetWp = this.waypoints[this.currentWp];
+                    if (targetWp) {
+                        let d = Math.hypot((targetWp.x + this.offsetX) - this.x, (targetWp.y + this.offsetY) - this.y);
+                        if (d < 30) {
+                            this.currentWp++;
+                        } else {
+                            this.aimAngle = Math.atan2((targetWp.y + this.offsetY) - this.y, (targetWp.x + this.offsetX) - this.x);
+                            this.x += Math.cos(this.aimAngle) * this.speed;
+                            this.y += Math.sin(this.aimAngle) * this.speed;
+                            this.legPhase += 0.2; 
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                if(!this.isActive) return;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                if (this.isStealth) ctx.globalAlpha = 0.4;
+                ctx.rotate(this.aimAngle);
+                
+                ctx.shadowBlur = 5; ctx.shadowColor = '#000';
+                
+                // Shoulders / Body
+                drawChamferedRect(ctx, -10, -14, 20, 28, 4, '#2d3436', '#111');
+                
+                // Head
+                ctx.fillStyle = '#1e272e';
+                ctx.beginPath(); ctx.arc(2, 0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                
+                // Visor glow
+                ctx.shadowBlur = 8; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+                ctx.fillRect(4, -4, 4, 8);
+                
+                // Rifle
+                ctx.shadowBlur = 2;
+                drawMetallicRect(ctx, 5, 8, 22, 5, '#444', '#111'); // Gun body
+                ctx.fillStyle = '#111'; ctx.fillRect(27, 9, 8, 3); // Barrel
+                
+                ctx.restore();
+                if (!this.isStealth || this.team === 'ally') this.drawHealthBar(ctx, 20);
+            }
+        }
+
+        class Tank extends Entity {
+            constructor(x, y, type) {
+                // ตัวแปรกำหนดสายรถถัง
+                let initialHp = 2000;
+                let spd = 3.5;
+                let dmgM = 1.0;
+                let baseRadius = 30;
+
+                if (type === 'juggernaut') { 
+                    initialHp = 3600; spd = 2.5; dmgM = 0.8; baseRadius = 35; 
+                }
+                else if (type === 'striker') { 
+                    initialHp = 1800; spd = 3.2; dmgM = 1.6; baseRadius = 30; 
+                }
+                else if (type === 'phantom') { 
+                    initialHp = 1400; spd = 5.0; dmgM = 0.9; baseRadius = 25; 
+                }
+
+                super(x, y, baseRadius, 'ally', initialHp, initialHp); 
+                
+                this.tankType = type;
+                this.maxSpeed = spd;
+                this.damageMult = dmgM;
+
+                // ขนาดโมเดลตามรุ่นรถถัง
+                if (this.tankType === 'juggernaut') { this.width = 80; this.height = 55; }
+                else if (this.tankType === 'phantom') { this.width = 65; this.height = 40; }
+                else { this.width = 70; this.height = 45; }
+
+                this.speed = 0; this.turnSpeed = 0.05;
+                this.angle = -Math.PI/4; this.turretAngle = -Math.PI/4;
+                
+                this.level = 1; this.xp = 0; this.xpToNext = 150; this.gold = 0;
+                this.lastShot = 0; this.lastHealTime = 0; this.respawnTimer = 0;
+                this.isMobile = true; this.attackRange = 500; this.waypoint = null;   
+
+                // เปลี่ยน Skill 1 เป็น Shield
+                this.skills = {
+                    1: { cd: 15000, lastUsed: 0, duration: 4000, active: false }, // Shield
+                    2: { cd: 15000, lastUsed: 0, duration: 5000, active: false }, // Overclock
+                    3: { cd: 30000, lastUsed: 0 } // Orbital Strike
+                };
+                this.treadOffset = 0;
+            }
+
+            gainXP(amount) {
+                this.xp += amount;
+                if (this.xp >= this.xpToNext) {
+                    this.level++; this.xp -= this.xpToNext; this.xpToNext = Math.floor(this.xpToNext * 1.5);
+                    this.maxHp += 300; this.hp = this.maxHp;
+                    document.getElementById('playerLevel').innerText = this.level;
+                    
+                    let unlocked = WEAPONS.find(w => w.unlockAt === this.level);
+                    if(unlocked) {
+                        showMessage(`SYSTEM UPGRADE: ${unlocked.name}`, '#00d2d3');
+                    }
+                    
+                    let nextWeapon = WEAPONS.slice().reverse().find(w => w.unlockAt <= this.level);
+                    if (nextWeapon) currentWeaponIndex = WEAPONS.indexOf(nextWeapon);
+                    
+                    SoundFX.levelUp(); 
+                }
+                document.getElementById('playerXp').innerText = this.xp;
+            }
+
+            setWaypoint(wx, wy) { this.waypoint = { x: wx, y: wy }; }
+
+            useSkill(num) {
+                if(!this.isActive) return;
+                let now = Date.now();
+                let skill = this.skills[num];
+                if (now - skill.lastUsed < skill.cd) return; 
+
+                let worldMouseX = (mouse.x / cameraZoom) + cameraX;
+                let worldMouseY = (mouse.y / cameraZoom) + cameraY;
+
+                if (num === 1) { 
+                    skill.lastUsed = now; skill.active = true;
+                    SoundFX.playTone(300, 'sine', 0.5, 0.2, 800);
+                    floatingTexts.push(new FloatingText(this.x, this.y - 60, `DEFLECTOR SHIELD`, "#3498db"));
+                } else if (num === 2) { 
+                    skill.lastUsed = now; skill.active = true;
+                    SoundFX.playTone(300, 'square', 0.5, 0.1, 800); 
+                    floatingTexts.push(new FloatingText(this.x, this.y - 60, `OVERCLOCK`, "#00d2d3"));
+                } else if (num === 3) { 
+                    skill.lastUsed = now;
+                    artilleryStrikes.push(new ArtilleryStrike(worldMouseX, worldMouseY, this.team, 500 + (this.level*50)));
+                    floatingTexts.push(new FloatingText(this.x, this.y - 60, `ORBITAL STRIKE`, "#ff4757"));
+                }
+            }
+
+            update(entities) {
+                if(!this.isActive) {
+                    if (Date.now() > this.respawnTimer) {
+                        this.isActive = true; this.hp = this.maxHp;
+                        this.x = ALLY_BASE_POS.x + 100; this.y = ALLY_BASE_POS.y - 100;
+                        this.angle = -Math.PI/4; this.waypoint = null;
+                        this.skills[1].active = false;
+                        this.skills[2].active = false;
+                    }
+                    return;
+                }
+
+                // ควบคุมระยะเวลา Skill
+                if (this.skills[1].active && Date.now() - this.skills[1].lastUsed > this.skills[1].duration) {
+                    this.skills[1].active = false;
+                }
+                if (this.skills[2].active && Date.now() - this.skills[2].lastUsed < this.skills[2].duration) {
+                    if (Math.random() < 0.4) particles.push(new BuffParticle(this.x, this.y, '#00d2d3'));
+                } else { 
+                    this.skills[2].active = false; 
+                }
+
+                let isWASDPressed = keys['KeyW'] || keys['KeyA'] || keys['KeyS'] || keys['KeyD'];
+                
+                if (isWASDPressed) {
+                    this.waypoint = null; 
+                    if (keys['KeyW']) this.speed = this.maxSpeed;
+                    else if (keys['KeyS']) this.speed = -this.maxSpeed / 2;
+                    else this.speed *= 0.85;
+
+                    if (keys['KeyA']) this.angle -= this.turnSpeed;
+                    if (keys['KeyD']) this.angle += this.turnSpeed;
+                } 
+                else if (this.waypoint) {
+                    let dx = this.waypoint.x - this.x; let dy = this.waypoint.y - this.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist > this.maxSpeed) {
+                        this.angle = Math.atan2(dy, dx); this.speed = this.maxSpeed;
+                    } else { this.speed = 0; this.waypoint = null; }
+                } else { this.speed *= 0.85; }
+
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                if(Math.abs(this.speed) > 0.5) this.treadOffset -= this.speed; 
+                
+                this.x = Math.max(this.radius, Math.min(MAP_SIZE - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(MAP_SIZE - this.radius, this.y));
+
+                let nearestTarget = null; let minDist = this.attackRange;
+                entities.forEach(ent => {
+                    if (ent.team !== this.team && ent.isActive && ent.hp > 0 && !(ent instanceof Projectile) && !ent.isStealth) {
+                        let d = Math.hypot(ent.x - this.x, ent.y - this.y);
+                        if (d < minDist) { minDist = d; nearestTarget = ent; }
+                    }
+                });
+
+                if (nearestTarget) {
+                    this.turretAngle = Math.atan2(nearestTarget.y - this.y, nearestTarget.x - this.x);
+                    this.shoot();
+                } else {
+                    let worldMouseX = (mouse.x / cameraZoom) + cameraX;
+                    let worldMouseY = (mouse.y / cameraZoom) + cameraY;
+                    // จูนความเร็วหมุนป้อมสำหรับรุ่นเร็ว
+                    let tSpd = this.tankType === 'phantom' ? 0.2 : 0.1;
+                    let targetAngle = Math.atan2(worldMouseY - this.y, worldMouseX - this.x);
+                    this.turretAngle = targetAngle; 
+                }
+            }
+
+            shoot() {
+                const now = Date.now();
+                const weapon = WEAPONS[currentWeaponIndex];
+                let currentFireRate = weapon.fireRate;
+                if (this.skills[2].active) currentFireRate /= 3;
+
+                if (now - this.lastShot > currentFireRate) {
+                    const barrelLength = 50;
+                    const startX = this.x + Math.cos(this.turretAngle) * barrelLength;
+                    const startY = this.y + Math.sin(this.turretAngle) * barrelLength;
+                    
+                    // คำนวณดาเมจโดยบวกตัวคูณของรุ่นรถถัง
+                    let finalDmg = (weapon.damage + (this.level * 5)) * this.damageMult;
+
+                    if (weapon.spread === 1) {
+                         projectiles.push(new Projectile(startX, startY, this.turretAngle, this.team, weapon.speed, finalDmg, weapon.color, weapon.isLightning));
+                    } else if (weapon.spread === 2) {
+                         const offsetDir = (this.lastShot % 2 === 0) ? Math.PI/2 : -Math.PI/2;
+                         const ox = startX + Math.cos(this.turretAngle + offsetDir) * 12;
+                         const oy = startY + Math.sin(this.turretAngle + offsetDir) * 12;
+                         // ปืนคู่ หารดาเมจนิดนึงจะได้ไม่โกง
+                         projectiles.push(new Projectile(ox, oy, this.turretAngle, this.team, weapon.speed, finalDmg * 0.7, weapon.color, weapon.isLightning));
+                    }
+                    this.lastShot = now;
+                    SoundFX.shoot(); 
+                    particles.push(new Smoke(startX, startY));
+                }
+            }
+            
+            draw() {
+                if(!this.isActive) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                if (this.isStealth) ctx.globalAlpha = 0.4;
+                ctx.rotate(this.angle);
+                
+                ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+
+                // Treads (สายพาน)
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(-this.width/2 - 6, -this.height/2 - 4, this.width + 12, 12);
+                ctx.fillRect(-this.width/2 - 6, this.height/2 - 8, this.width + 12, 12);
+                
+                // Tread lines
+                ctx.fillStyle = '#222';
+                for(let i=0; i<this.width+12; i+=6) {
+                    let rx = (-this.width/2 - 6) + ((i + this.treadOffset) % (this.width+12));
+                    if(rx < -this.width/2 - 6) rx += (this.width+12);
+                    ctx.fillRect(rx, -this.height/2 - 4, 2, 12);
+                    ctx.fillRect(rx, this.height/2 - 8, 2, 12);
+                }
+
+                // Main Hull
+                drawChamferedRect(ctx, -this.width/2, -this.height/2, this.width, this.height, 10, null, null);
+                let hullGrad = ctx.createLinearGradient(-this.width/2, -this.height/2, this.width/2, this.height/2);
+                
+                // สีหลักตามสายของรถถัง
+                if (this.tankType === 'juggernaut') { hullGrad.addColorStop(0, '#4b6584'); hullGrad.addColorStop(1, '#2d3436'); }
+                else if (this.tankType === 'striker') { hullGrad.addColorStop(0, '#8e44ad'); hullGrad.addColorStop(1, '#2c3e50'); }
+                else { hullGrad.addColorStop(0, '#3498db'); hullGrad.addColorStop(1, '#2980b9'); } // Phantom
+                
+                ctx.fillStyle = hullGrad; ctx.fill();
+                ctx.strokeStyle = '#222'; ctx.lineWidth = 2; ctx.stroke();
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(-this.width/2 + 10, -this.height/2 + 5, 20, this.height - 10);
+                
+                ctx.shadowBlur = 10; ctx.shadowColor = '#00d2d3'; ctx.fillStyle = '#00d2d3';
+                ctx.fillRect(-this.width/2 + 5, -this.height/2 + 5, 3, 10);
+                ctx.fillRect(-this.width/2 + 5, this.height/2 - 15, 3, 10);
+                ctx.fillRect(this.width/2 - 15, -this.height/2 + 5, 10, 2);
+                ctx.fillRect(this.width/2 - 15, this.height/2 - 7, 10, 2);
+
+                ctx.restore();
+
+                // Turret
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                if (this.isStealth) ctx.globalAlpha = 0.4;
+                ctx.rotate(this.turretAngle);
+                ctx.shadowColor = "rgba(0, 0, 0, 0.6)"; ctx.shadowBlur = 8;
+
+                if (WEAPONS[currentWeaponIndex].spread === 2) {
+                    drawMetallicRect(ctx, 10, -12, 45, 6, '#7f8fa6', '#2f3640');
+                    drawMetallicRect(ctx, 10, 6, 45, 6, '#7f8fa6', '#2f3640');
+                } else {
+                    drawMetallicRect(ctx, 10, -6, 55, 12, '#7f8fa6', '#2f3640');
+                    drawMetallicRect(ctx, 55, -8, 10, 16, '#2f3640', '#111');
+                }
+
+                drawChamferedRect(ctx, -20, -20, 40, 40, 10, null, null);
+                let turretGrad = ctx.createLinearGradient(-20, -20, 20, 20);
+                turretGrad.addColorStop(0, '#576574'); turretGrad.addColorStop(1, '#222f3e');
+                ctx.fillStyle = turretGrad; ctx.fill();
+                ctx.strokeStyle = '#111'; ctx.stroke();
+
+                ctx.fillStyle = '#111';
+                ctx.beginPath(); ctx.arc(-5, 0, 10, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 10; ctx.shadowColor = '#00d2d3'; ctx.fillStyle = '#00d2d3';
+                ctx.beginPath(); ctx.arc(-5, 0, 4, 0, Math.PI*2); ctx.fill();
+                
+                ctx.restore();
+
+                // Draw Deflector Shield Aura
+                if (this.skills[1].active) {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius + 15, 0, Math.PI*2);
+                    ctx.fillStyle = 'rgba(52, 152, 219, 0.2)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 3;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#3498db';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                this.drawHealthBar(ctx, 45);
+                
+                ctx.shadowBlur = 2; ctx.shadowColor = '#000';
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 16px "Segoe UI"'; ctx.textAlign = 'center';
+                ctx.fillText(`LV.${this.level}`, this.x, this.y - this.radius - 50);
+            }
+        }
+
+        class BossTank extends Entity {
+            constructor(x, y, lane, maxHp, level) {
+                let finalHp = maxHp * difficultyMultiplier;
+                super(x, y, 45, 'enemy', finalHp, finalHp); 
+                this.width = 100; this.height = 70;
+                this.lane = lane; this.level = level; 
+                this.waypoints = [...PATHS[lane]].reverse();
+                this.waypoints.push({x: ALLY_BASE_POS.x, y: ALLY_BASE_POS.y});
+                
+                this.currentWp = 0; this.speed = 0.8;
+                this.angle = 0; this.turretAngle = 0;
+                
+                this.attackRange = 450; this.damage = 60 * difficultyMultiplier;
+                this.lastShot = 0; this.lastHealTime = 0; this.fireRate = 800; 
+                this.isMobile = true; this.treadOffset = 0;
+
+                this.skills = {
+                    1: { cd: 12000, lastUsed: Date.now() + Math.random() * 5000 },
+                    2: { cd: 20000, lastUsed: Date.now() + Math.random() * 5000, duration: 5000, active: false },
+                    3: { cd: 30000, lastUsed: Date.now() + Math.random() * 5000 }
+                };
+
+                this.state = 'ATTACKING'; this.deathCount = 0;
+                this.respawnTime = 10000; this.respawnTimer = 0;
+            }
+
+            update(entities) {
+                if(!this.isActive) {
+                    if (Date.now() > this.respawnTimer) {
+                        this.isActive = true; this.level += 5; this.maxHp += (1000 * difficultyMultiplier); this.hp = this.maxHp;
+                        this.x = ENEMY_BASE_POS.x; this.y = ENEMY_BASE_POS.y;
+                        this.state = 'ATTACKING'; this.currentWp = 0;
+                        showMessage('WARNING: BOSS CLASS THREAT DETECTED', '#ff4757');
+                        SoundFX.bossSpawn(); 
+                    }
+                    return;
+                }
+
+                if (this.hp < this.maxHp * 0.3 && this.state === 'ATTACKING') {
+                    this.state = 'RETREATING';
+                    showMessage('THREAT RETREATING TO REPAIR', '#f1c40f');
+                }
+
+                if (this.state === 'RETREATING') {
+                    let distToBase = Math.hypot(ENEMY_BASE_POS.x - this.x, ENEMY_BASE_POS.y - this.y);
+                    if (distToBase < 300) { 
+                        if (!this.lastHealTime || Date.now() - this.lastHealTime > 1000) {
+                            let healAmount = Math.floor(this.maxHp * 0.1);
+                            this.hp = Math.min(this.maxHp, this.hp + healAmount);
+                            floatingTexts.push(new FloatingText(this.x, this.y - 60, `+${healAmount}`, "#2ecc71"));
+                            this.lastHealTime = Date.now();
+                            if (this.hp >= this.maxHp) {
+                                this.hp = this.maxHp; this.state = 'ATTACKING'; this.currentWp = 0;
+                            }
+                        }
+                    } else {
+                        this.angle = Math.atan2(ENEMY_BASE_POS.y - this.y, ENEMY_BASE_POS.x - this.x);
+                        this.turretAngle = this.angle;
+                        this.x += Math.cos(this.angle) * (this.speed * 1.5);
+                        this.y += Math.sin(this.angle) * (this.speed * 1.5);
+                        this.treadOffset -= this.speed * 1.5;
+                    }
+                    return; 
+                }
+
+                if (this.skills[2].active && Date.now() - this.skills[2].lastUsed < this.skills[2].duration) {
+                    if (Math.random() < 0.4) particles.push(new BuffParticle(this.x, this.y, '#ff4757'));
+                } else { this.skills[2].active = false; }
+
+                let nearestTarget = null; let minDist = this.attackRange;
+                entities.forEach(ent => {
+                    if (ent.team !== this.team && ent.isActive && ent.hp > 0 && !(ent instanceof Projectile) && !ent.isStealth) {
+                        let d = Math.hypot(ent.x - this.x, ent.y - this.y);
+                        if (d < minDist) { minDist = d; nearestTarget = ent; }
+                    }
+                });
+
+                if (nearestTarget) {
+                    this.turretAngle = Math.atan2(nearestTarget.y - this.y, nearestTarget.x - this.x);
+                    let distToTarget = Math.hypot(nearestTarget.x - this.x, nearestTarget.y - this.y);
+                    
+                    if (distToTarget > 200) {
+                        this.angle = this.turretAngle;
+                        this.x += Math.cos(this.angle) * (this.speed * 0.8);
+                        this.y += Math.sin(this.angle) * (this.speed * 0.8);
+                        this.treadOffset -= this.speed * 0.8;
+                    }
+
+                    const now = Date.now();
+                    if (now - this.skills[1].lastUsed > this.skills[1].cd && Math.random() < 0.02) {
+                        this.skills[1].lastUsed = now;
+                        let barrelLength = 60;
+                        let sx = this.x + Math.cos(this.turretAngle) * barrelLength; let sy = this.y + Math.sin(this.turretAngle) * barrelLength;
+                        projectiles.push(new Projectile(sx, sy, this.turretAngle, this.team, 25, 150 + (this.level*10), '#ff4757', false, false, true));
+                        SoundFX.playTone(800, 'sawtooth', 0.2, 0.1, 100);
+                        floatingTexts.push(new FloatingText(this.x, this.y - 60, `PLASMA BLASTER`, "#ff4757"));
+                    }
+                    if (now - this.skills[2].lastUsed > this.skills[2].cd && Math.random() < 0.01) {
+                        this.skills[2].lastUsed = now; this.skills[2].active = true;
+                        SoundFX.playTone(300, 'square', 0.5, 0.1, 800); 
+                    }
+                    if (now - this.skills[3].lastUsed > this.skills[3].cd && Math.random() < 0.01) {
+                        this.skills[3].lastUsed = now;
+                        artilleryStrikes.push(new ArtilleryStrike(nearestTarget.x, nearestTarget.y, this.team, 400 + (this.level*30)));
+                    }
+
+                    let currentFireRate = this.fireRate;
+                    if (this.skills[2].active) currentFireRate /= 3;
+
+                    if (now - this.lastShot > currentFireRate) {
+                        const barrelLength = 60;
+                        const startX = this.x + Math.cos(this.turretAngle) * barrelLength;
+                        const startY = this.y + Math.sin(this.turretAngle) * barrelLength;
+                        
+                        const ox1 = startX + Math.cos(this.turretAngle + Math.PI/2) * 18; const oy1 = startY + Math.sin(this.turretAngle + Math.PI/2) * 18;
+                        const ox2 = startX + Math.cos(this.turretAngle - Math.PI/2) * 18; const oy2 = startY + Math.sin(this.turretAngle - Math.PI/2) * 18;
+
+                        projectiles.push(new Projectile(ox1, oy1, this.turretAngle, this.team, 15, this.damage, '#ff6b81', false));
+                        projectiles.push(new Projectile(ox2, oy2, this.turretAngle, this.team, 15, this.damage, '#ff6b81', false));
+                        this.lastShot = now; SoundFX.shoot();
+                    }
+                } else {
+                    let targetWp = this.waypoints[this.currentWp];
+                    if (targetWp) {
+                        let d = Math.hypot(targetWp.x - this.x, targetWp.y - this.y);
+                        if (d < 50) this.currentWp++;
+                        else {
+                            this.angle = Math.atan2(targetWp.y - this.y, targetWp.x - this.x);
+                            this.turretAngle = this.angle;
+                            this.x += Math.cos(this.angle) * this.speed;
+                            this.y += Math.sin(this.angle) * this.speed;
+                            this.treadOffset -= this.speed;
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                if(!this.isActive) return;
+                
+                ctx.save(); ctx.translate(this.x, this.y); 
+                if (this.isStealth) ctx.globalAlpha = 0.4;
+                ctx.rotate(this.angle);
+                ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; ctx.shadowBlur = 15; ctx.shadowOffsetX = 8; ctx.shadowOffsetY = 8;
+                
+                // Heavy Treads
+                ctx.fillStyle = '#050505'; 
+                ctx.fillRect(-this.width/2 - 10, -this.height/2 - 6, this.width + 20, 16); 
+                ctx.fillRect(-this.width/2 - 10, this.height/2 - 10, this.width + 20, 16);
+                
+                ctx.fillStyle = '#111';
+                for(let i=0; i<this.width+20; i+=8) {
+                    let rx = (-this.width/2 - 10) + ((i + this.treadOffset) % (this.width+20));
+                    if(rx < -this.width/2 - 10) rx += (this.width+20);
+                    ctx.fillRect(rx, -this.height/2 - 6, 3, 16);
+                    ctx.fillRect(rx, this.height/2 - 10, 3, 16);
+                }
+
+                // Heavy Hull
+                drawChamferedRect(ctx, -this.width/2, -this.height/2, this.width, this.height, 15, null, null);
+                let hullGrad = ctx.createLinearGradient(-this.width/2, -this.height/2, this.width/2, this.height/2);
+                hullGrad.addColorStop(0, '#3d3d3d'); hullGrad.addColorStop(1, '#1e1111');
+                ctx.fillStyle = hullGrad; ctx.fill();
+                ctx.strokeStyle = '#ff4757'; ctx.lineWidth = 1; ctx.stroke();
+                
+                // Red glowing vents
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ff4757'; ctx.fillStyle = '#ff4757';
+                ctx.fillRect(-this.width/2 + 10, -this.height/2 + 5, 5, 15);
+                ctx.fillRect(-this.width/2 + 10, this.height/2 - 20, 5, 15);
+
+                ctx.restore();
+
+                // Heavy Turret
+                ctx.save(); ctx.translate(this.x, this.y); 
+                if (this.isStealth) ctx.globalAlpha = 0.4;
+                ctx.rotate(this.turretAngle);
+                ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; ctx.shadowBlur = 10;
+                
+                // Twin Barrels
+                drawMetallicRect(ctx, 10, -22, 60, 12, '#555', '#222'); 
+                drawMetallicRect(ctx, 10, 10, 60, 12, '#555', '#222');   
+                
+                // Turret Base
+                drawChamferedRect(ctx, -30, -30, 60, 60, 15, null, null);
+                let tGrad = ctx.createLinearGradient(-30,-30,30,30);
+                tGrad.addColorStop(0, '#555'); tGrad.addColorStop(1, '#111');
+                ctx.fillStyle = tGrad; ctx.fill();
+                ctx.strokeStyle = '#222'; ctx.lineWidth = 3; ctx.stroke();
+                
+                // Center Core
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ff4757'; ctx.fillStyle = '#ff4757';
+                ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.fill();
+
+                ctx.restore();
+
+                if (!this.isStealth || this.team === 'ally') this.drawHealthBar(ctx, 55); 
+                
+                ctx.shadowBlur = 2; ctx.shadowColor = '#000';
+                ctx.fillStyle = '#ff4757'; ctx.font = 'bold 18px "Segoe UI"'; ctx.textAlign = 'center';
+                ctx.fillText(`LV.${this.level}`, this.x, this.y - this.radius - 65);
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, angle, team, speed, damage, color, isLightning, isTurretShot = false, isPiercing = false) {
+                this.x = x; this.y = y; this.angle = angle;
+                this.team = team; this.speed = speed; this.damage = damage;
+                this.color = color; this.isLightning = isLightning;
+                this.isTurretShot = isTurretShot; this.isPiercing = isPiercing; 
+                this.hitTargets = []; this.isActive = true; this.distanceTraveled = 0;
+            }
+
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                this.distanceTraveled += this.speed;
+                
+                if (this.distanceTraveled > 1200 || this.x < 0 || this.x > MAP_SIZE || this.y < 0 || this.y > MAP_SIZE) {
+                    this.isActive = false;
+                }
+                // Trail
+                if(Math.random() < 0.5) particles.push(new BuffParticle(this.x, this.y, this.color));
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+                
+                if (this.isPiercing) { 
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); ctx.ellipse(0, 0, 20, 6, 0, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.ellipse(5, 0, 8, 2, 0, 0, Math.PI*2); ctx.fill();
+                } else if (this.isLightning) {
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(15, 0); ctx.stroke();
+                    ctx.strokeStyle = this.color; ctx.lineWidth = 6;
+                    ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.stroke();
+                } else {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath(); ctx.ellipse(0, 0, 12, 4, 0, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.ellipse(2, 0, 4, 2, 0, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        // เปลี่ยนเป็นเศษซากเทคโนโลยีแทนพุ่มไม้
+        class TechDebris {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.radius = 25 + Math.random() * 15; 
+                this.type = Math.floor(Math.random() * 3);
+                this.angle = Math.random() * Math.PI * 2;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.shadowColor = "rgba(0, 0, 0, 0.8)"; ctx.shadowBlur = 15; ctx.shadowOffsetX = 10; ctx.shadowOffsetY = 10;
+                
+                if (this.type === 0) { // กล่องเหล็ก
+                    drawChamferedRect(ctx, -20, -20, 40, 40, 5, '#2f3640', '#111');
+                    ctx.fillStyle = '#00d2d3'; ctx.fillRect(-5, -5, 10, 10);
+                } else if (this.type === 1) { // ท่อหักๆ
+                    drawMetallicRect(ctx, -30, -10, 60, 20, '#353b48', '#111');
+                    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-30, 0, 10, 0, Math.PI*2); ctx.fill();
+                } else { // เศษเกราะ
+                    ctx.fillStyle = '#2d3436';
+                    ctx.beginPath(); ctx.moveTo(-20, -20); ctx.lineTo(30, 0); ctx.lineTo(-10, 25); ctx.fill(); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        function resolveOverlaps(entities) {
+            const mobiles = entities.filter(e => e.isActive && e.hp > 0 && e.isMobile);
+            for (let i = 0; i < mobiles.length; i++) {
+                for (let j = i + 1; j < mobiles.length; j++) {
+                    let e1 = mobiles[i]; let e2 = mobiles[j];
+                    let dx = e1.x - e2.x; let dy = e1.y - e2.y;
+                    let dist = Math.hypot(dx, dy); let minDist = e1.radius + e2.radius;
+                    if (dist < minDist) {
+                        if (dist === 0) { dx = 0.1; dy = 0.1; dist = 0.1414; }
+                        let overlap = minDist - dist;
+                        let nx = dx / dist; let ny = dy / dist;
+                        let pushX = nx * (overlap / 2); let pushY = ny * (overlap / 2);
+                        e1.x += pushX; e1.y += pushY; e2.x -= pushX; e2.y -= pushY;
+                    }
+                }
+            }
+        }
+
+        let allyBase, enemyBase, tank;
+        let turrets = [], minions = [], bosses = [], projectiles = [], bushes = [], particles = [], clickIndicators = [], floatingTexts = [], artilleryStrikes = [];
+        let spawnerInterval;
+
+        function startGame() {
+            SoundFX.init(); 
+
+            let selectedTankClass = document.getElementById('tankSelect').value;
+            difficultyMultiplier = parseFloat(document.getElementById('diffSelect').value);
+            
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('uiLeft').style.display = 'block';
+            document.getElementById('uiRight').style.display = 'block';
+            document.getElementById('weaponUI').style.display = 'block';
+            document.getElementById('skillsUI').style.display = 'flex'; 
+            document.getElementById('gameMessage').style.display = 'none';
+            document.getElementById('miniMap').style.display = 'block';
+
+            allyBase = new Base(ALLY_BASE_POS.x, ALLY_BASE_POS.y, 'ally');
+            enemyBase = new Base(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y, 'enemy');
+            
+            // สร้างรถถังพร้อมส่งค่า Class เข้าไป
+            tank = new Tank(ALLY_BASE_POS.x + 150, ALLY_BASE_POS.y - 150, selectedTankClass);
+            
+            turrets = [
+                // --- ป้อมปราการฝ่ายเรา (Ally Turrets) ---
+                // ป้องกันฐานแม่
+                new Turret(300, 2400, 'ally'), new Turret(600, 2700, 'ally'), new Turret(450, 2550, 'ally'),
+                // เลนบน (Top)
+                new Turret(300, 2000, 'ally'), new Turret(300, 1400, 'ally'), new Turret(300, 800, 'ally'),
+                // เลนกลาง (Mid)
+                new Turret(900, 2100, 'ally'), new Turret(1200, 1800, 'ally'), new Turret(1400, 1600, 'ally'),
+                // เลนล่าง (Bot)
+                new Turret(1000, 2700, 'ally'), new Turret(1600, 2700, 'ally'), new Turret(2200, 2700, 'ally'),
+
+                // --- ป้อมปราการฝ่ายศัตรู (Enemy Turrets) ---
+                // ป้องกันฐานแม่
+                new Turret(2700, 600, 'enemy'), new Turret(2400, 300, 'enemy'), new Turret(2550, 450, 'enemy'),
+                // เลนบน (Top)
+                new Turret(2000, 300, 'enemy'), new Turret(1400, 300, 'enemy'), new Turret(800, 300, 'enemy'),
+                // เลนกลาง (Mid)
+                new Turret(2100, 900, 'enemy'), new Turret(1800, 1200, 'enemy'), new Turret(1600, 1400, 'enemy'),
+                // เลนล่าง (Bot)
+                new Turret(2700, 2000, 'enemy'), new Turret(2700, 1400, 'enemy'), new Turret(2700, 800, 'enemy')
+            ];
+
+            minions = []; bosses = []; projectiles = []; bushes = []; particles = []; clickIndicators = []; floatingTexts = []; artilleryStrikes = [];
+            currentWeaponIndex = 0;
+            cameraZoom = 1.0;
+
+            const laneSegments = [
+                {v: {x:ALLY_BASE_POS.x, y:ALLY_BASE_POS.y}, w: {x:ENEMY_BASE_POS.x, y:ENEMY_BASE_POS.y}}, 
+                {v: {x:ALLY_BASE_POS.x, y:ALLY_BASE_POS.y}, w: {x:300, y:300}},  
+                {v: {x:300, y:300}, w: {x:ENEMY_BASE_POS.x, y:ENEMY_BASE_POS.y}},  
+                {v: {x:ALLY_BASE_POS.x, y:ALLY_BASE_POS.y}, w: {x:2700, y:2700}}, 
+                {v: {x:2700, y:2700}, w: {x:ENEMY_BASE_POS.x, y:ENEMY_BASE_POS.y}}  
+            ];
+
+            while(bushes.length < 300) { 
+                let bx = Math.random() * MAP_SIZE;
+                let by = Math.random() * MAP_SIZE;
+                let isNearLane = false;
+                for (let seg of laneSegments) {
+                    if (distToSegment({x:bx, y:by}, seg.v, seg.w) < 160) { isNearLane = true; break; }
+                }
+                if (Math.hypot(bx - ALLY_BASE_POS.x, by - ALLY_BASE_POS.y) < 500) isNearLane = true;
+                if (Math.hypot(bx - ENEMY_BASE_POS.x, by - ENEMY_BASE_POS.y) < 500) isNearLane = true;
+                
+                if (!isNearLane) bushes.push(new TechDebris(bx, by));
+            }
+
+            if (spawnerInterval) clearInterval(spawnerInterval);
+            spawnerInterval = setInterval(() => {
+                if(allyBase.hp > 0 && enemyBase.hp > 0) {
+                    ['top', 'mid', 'bot'].forEach(lane => {
+                        for(let i=0; i<4; i++) { // เพิ่มจำนวนลูกน้อง
+                            setTimeout(() => {
+                                minions.push(new Minion(ALLY_BASE_POS.x, ALLY_BASE_POS.y, 'ally', lane));
+                                minions.push(new Minion(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y, 'enemy', lane));
+                            }, i * 600);
+                        }
+                    });
+                }
+            }, 15000);
+
+            let lanesToSpawn = [];
+            let bossInitialLevel = Math.floor(10 * difficultyMultiplier);
+            
+            if (difficultyMultiplier < 1.0) lanesToSpawn = ['mid'];
+            else if (difficultyMultiplier === 1.0) lanesToSpawn = ['top', 'bot'];
+            else lanesToSpawn = ['top', 'mid', 'bot'];
+
+            lanesToSpawn.forEach(lane => {
+                bosses.push(new BossTank(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y, lane, 5000, bossInitialLevel));
+            });
+
+            showMessage(`SYSTEM ONLINE`, '#00d2d3', 3000);
+            gameState = 'PLAYING';
+            updateUI();
+        }
+
+        function drawMapLines() {
+            // วาดเส้นทางบนพื้นสไตล์ Sci-Fi (คล้ายๆไฟนำทางในโรงเก็บ)
+            ctx.lineCap = 'butt';
+            ctx.lineJoin = 'miter';
+            
+            // เส้นหลัก
+            ctx.lineWidth = 120;
+            ctx.strokeStyle = 'rgba(25, 30, 40, 0.8)';
+            ctx.beginPath(); ctx.moveTo(ALLY_BASE_POS.x, ALLY_BASE_POS.y); ctx.lineTo(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ALLY_BASE_POS.x, ALLY_BASE_POS.y); ctx.lineTo(300, 300); ctx.lineTo(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ALLY_BASE_POS.x, ALLY_BASE_POS.y); ctx.lineTo(2700, 2700); ctx.lineTo(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y); ctx.stroke();
+            
+            // เส้นไฟตรงกลางถนน
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = 'rgba(255, 165, 0, 0.4)'; // สีส้ม
+            ctx.setLineDash([20, 20]);
+            ctx.beginPath(); ctx.moveTo(ALLY_BASE_POS.x, ALLY_BASE_POS.y); ctx.lineTo(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ALLY_BASE_POS.x, ALLY_BASE_POS.y); ctx.lineTo(300, 300); ctx.lineTo(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ALLY_BASE_POS.x, ALLY_BASE_POS.y); ctx.lineTo(2700, 2700); ctx.lineTo(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function handleCollisions(allEntities) {
+            projectiles.forEach(p => {
+                if(!p.isActive) return;
+                for (let ent of allEntities) {
+                    if (p.team !== ent.team && ent.isActive && ent.hp > 0) {
+                        if (p.isPiercing && p.hitTargets.includes(ent)) continue;
+
+                        let dist = Math.hypot(ent.x - p.x, ent.y - p.y);
+                        let hitbox = ent instanceof Tank ? ent.radius * 0.8 : ent.radius; 
+                        if (p.isPiercing) hitbox += 15; 
+                        
+                        if (dist < hitbox + 8) {
+                            
+                            // ถ้าเป้าหมายคือรถถังเรา และโล่เปิดอยู่ (บล็อคความเสียหาย 100%)
+                            if (ent === tank && tank.skills[1].active) {
+                                floatingTexts.push(new FloatingText(ent.x, ent.y, `BLOCKED`, "#3498db"));
+                                if (!p.isPiercing) p.isActive = false; // ทำลายกระสุน
+                                break; // ป้องกันการทำดาเมจทะลุไปสิ่งอื่นด้านหลังทันที (ถ้าไม่ piercing)
+                            } else {
+                                ent.hp -= p.damage;
+                                floatingTexts.push(new FloatingText(ent.x, ent.y, `-${Math.floor(p.damage)}`, "#ff4757"));
+                                
+                                // Effect impact
+                                for(let i=0; i<3; i++) particles.push(new BuffParticle(p.x, p.y, p.color));
+
+                                if (p.isPiercing) p.hitTargets.push(ent); 
+                                else p.isActive = false;
+                                
+                                if (ent.hp <= 0) {
+                                    ent.hp = 0; ent.isActive = false;
+                                    // Big explosion on death
+                                    for(let i=0; i<15; i++) particles.push(new Smoke(ent.x, ent.y));
+                                    
+                                    if (ent instanceof Base) handleGameOver(ent.team);
+                                    else if (ent instanceof Tank) handlePlayerDeath(ent);
+                                    else if (p.team === 'ally') processKillReward(ent);
+                                }
+                            }
+                            if(!p.isActive) break; 
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateUI() {
+            if(!tank) return;
+            document.getElementById('playerHp').innerText = Math.floor(tank.hp);
+            document.getElementById('playerMaxHp').innerText = tank.maxHp;
+            document.getElementById('allyBaseHp').innerText = Math.floor(allyBase.hp);
+            document.getElementById('enemyBaseHp').innerText = Math.floor(enemyBase.hp);
+
+            let now = Date.now();
+            let spaceCd = 10000;
+            let spaceElapsed = tank.lastSpaceHeal ? now - tank.lastSpaceHeal : spaceCd;
+            if (spaceElapsed < spaceCd) {
+                let spaceRemaining = ((spaceCd - spaceElapsed) / 1000).toFixed(1);
+                document.getElementById('weaponUI').innerText = `SYS: AUTO-WEAPON | REPAIR CD: ${spaceRemaining}s`;
+                document.getElementById('weaponUI').style.color = '#ff4757';
+            } else {
+                document.getElementById('weaponUI').innerText = `SYS: AUTO-WEAPON | REPAIR READY (Press Space)`;
+                document.getElementById('weaponUI').style.color = '#00d2d3';
+            }
+
+            for(let i=1; i<=3; i++) {
+                let skill = tank.skills[i];
+                let elBox = document.getElementById(`skill${i}`);
+                let elCd = document.getElementById(`cd${i}`);
+                
+                let elapsed = now - skill.lastUsed;
+                if (elapsed < skill.cd) {
+                    let remaining = skill.cd - elapsed;
+                    let pct = (remaining / skill.cd) * 100;
+                    elCd.style.height = `${pct}%`;
+                    elCd.innerText = (remaining/1000).toFixed(1);
+                    elBox.classList.remove('ready');
+                } else {
+                    elCd.style.height = `0%`;
+                    elCd.innerText = '';
+                    elBox.classList.add('ready');
+                }
+            }
+        }
+
+        function drawMiniMap() {
+            if(!mapCtx) return;
+            mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+            const scale = mapCanvas.width / MAP_SIZE;
+            
+            // Background minimap grids
+            mapCtx.strokeStyle = '#333'; mapCtx.lineWidth = 1;
+            for(let i=0; i<mapCanvas.width; i+=20) {
+                mapCtx.beginPath(); mapCtx.moveTo(i, 0); mapCtx.lineTo(i, mapCanvas.height); mapCtx.stroke();
+                mapCtx.beginPath(); mapCtx.moveTo(0, i); mapCtx.lineTo(mapCanvas.width, i); mapCtx.stroke();
+            }
+
+            turrets.forEach(t => {
+                if(!t.isActive) return;
+                mapCtx.fillStyle = t.team === 'ally' ? '#00d2d3' : '#ff4757';
+                mapCtx.fillRect(t.x * scale - 2, t.y * scale - 2, 4, 4);
+            });
+
+            minions.forEach(m => {
+                if(!m.isActive || (m.isStealth && m.team !== 'ally')) return;
+                mapCtx.fillStyle = m.team === 'ally' ? '#74b9ff' : '#ff7675';
+                mapCtx.fillRect(m.x * scale - 1.5, m.y * scale - 1.5, 3, 3);
+            });
+
+            bosses.forEach(b => {
+                if(!b.isActive || (b.isStealth && b.team !== 'ally')) return;
+                mapCtx.fillStyle = '#f1c40f'; 
+                mapCtx.beginPath(); mapCtx.arc(b.x * scale, b.y * scale, 4, 0, Math.PI * 2); mapCtx.fill();
+            });
+
+            if (allyBase && allyBase.isActive) {
+                mapCtx.fillStyle = '#00d2d3'; 
+                mapCtx.fillRect(allyBase.x * scale - 6, allyBase.y * scale - 6, 12, 12);
+            }
+            if (enemyBase && enemyBase.isActive) {
+                mapCtx.fillStyle = '#ff4757'; 
+                mapCtx.fillRect(enemyBase.x * scale - 6, enemyBase.y * scale - 6, 12, 12);
+            }
+
+            if (tank && tank.isActive) {
+                mapCtx.fillStyle = '#fff'; 
+                mapCtx.fillRect(tank.x * scale - 3, tank.y * scale - 3, 6, 6);
+                
+                mapCtx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                mapCtx.lineWidth = 1.5;
+                let visibleWidth = canvas.width / cameraZoom;
+                let visibleHeight = canvas.height / cameraZoom;
+                mapCtx.strokeRect(cameraX * scale, cameraY * scale, visibleWidth * scale, visibleHeight * scale);
+            }
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+
+            if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
+                let visibleWidth = canvas.width / cameraZoom;
+                let visibleHeight = canvas.height / cameraZoom;
+
+                let targetCamX = tank.isActive ? tank.x - visibleWidth / 2 : cameraX;
+                let targetCamY = tank.isActive ? tank.y - visibleHeight / 2 : cameraY;
+                
+                // Smooth camera follow
+                cameraX += (targetCamX - cameraX) * 0.1;
+                cameraY += (targetCamY - cameraY) * 0.1;
+                
+                cameraX = Math.max(0, Math.min(MAP_SIZE - visibleWidth, cameraX));
+                cameraY = Math.max(0, Math.min(MAP_SIZE - visibleHeight, cameraY));
+
+                canvas.style.backgroundSize = `${100 * cameraZoom}px ${100 * cameraZoom}px`;
+                canvas.style.backgroundPosition = `${-cameraX * cameraZoom}px ${-cameraY * cameraZoom}px`;
+
+                ctx.save();
+                ctx.scale(cameraZoom, cameraZoom);
+                ctx.translate(-cameraX, -cameraY);
+
+                drawMapLines();
+
+                bushes.forEach(b => {
+                    if (b.x > cameraX - 200 && b.x < cameraX + visibleWidth + 200 &&
+                        b.y > cameraY - 200 && b.y < cameraY + visibleHeight + 200) {
+                        b.draw();
+                    }
+                });
+
+                if(allyBase.isActive) allyBase.draw();
+                if(enemyBase.isActive) enemyBase.draw();
+
+                let allEntities = [allyBase, enemyBase, tank, ...turrets, ...minions, ...bosses];
+                
+                if (gameState === 'PLAYING') {
+                    if (tank.isActive && tank.hp < tank.maxHp) {
+                        let distToAllyBase = Math.hypot(tank.x - allyBase.x, tank.y - allyBase.y);
+                        if (distToAllyBase <= 300) {
+                            if (!tank.lastHealTime || Date.now() - tank.lastHealTime > 1000) {
+                                let healAmount = 50; 
+                                tank.hp = Math.min(tank.maxHp, tank.hp + healAmount);
+                                floatingTexts.push(new FloatingText(tank.x, tank.y - 40, `+${healAmount}`, "#00d2d3")); 
+                                tank.lastHealTime = Date.now();
+                            }
+                        }
+                    }
+
+                    allEntities.forEach(ent => {
+                        if (ent.isMobile) {
+                            ent.isStealth = false;
+                            for (let b of bushes) {
+                                if (Math.hypot(ent.x - b.x, ent.y - b.y) < b.radius + ent.radius * 0.3) {
+                                    if (!ent.lastShot || Date.now() - ent.lastShot > 1500) {
+                                        ent.isStealth = true;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    });
+
+                    turrets.forEach(t => { if (t.isActive) { t.update(allEntities); } });
+                    for (let i = minions.length - 1; i >= 0; i--) {
+                        if (minions[i].isActive) minions[i].update(allEntities); 
+                        else minions.splice(i, 1);
+                    }
+                    bosses.forEach(b => b.update(allEntities)); 
+                    
+                    tank.update(allEntities); 
+                    
+                    for (let i = artilleryStrikes.length - 1; i >= 0; i--) {
+                        if (artilleryStrikes[i].isActive) artilleryStrikes[i].update(allEntities); 
+                        else artilleryStrikes.splice(i, 1);
+                    }
+
+                    for (let i = projectiles.length - 1; i >= 0; i--) {
+                        if (projectiles[i].isActive) projectiles[i].update(); 
+                        else projectiles.splice(i, 1);
+                    }
+                    
+                    for (let i = particles.length - 1; i >= 0; i--) {
+                        particles[i].update();
+                        if (particles[i].life <= 0) particles.splice(i, 1);
+                    }
+
+                    for (let i = clickIndicators.length - 1; i >= 0; i--) {
+                        clickIndicators[i].update();
+                        if (clickIndicators[i].alpha <= 0) clickIndicators.splice(i, 1);
+                    }
+
+                    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                        floatingTexts[i].update();
+                        if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+                    }
+                    
+                    resolveOverlaps(allEntities);
+                    handleCollisions(allEntities);
+                }
+
+                clickIndicators.forEach(c => c.draw(ctx));
+                artilleryStrikes.forEach(a => a.draw(ctx)); 
+                turrets.forEach(t => { if (t.isActive) t.draw(); });
+                minions.forEach(m => m.draw());
+                bosses.forEach(b => { if (b.isActive) b.draw(); });
+                tank.draw();
+                projectiles.forEach(p => p.draw());
+                particles.forEach(p => p.draw(ctx)); 
+                floatingTexts.forEach(ft => ft.draw(ctx)); 
+
+                ctx.restore();
+                updateUI();
+                drawMiniMap();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
