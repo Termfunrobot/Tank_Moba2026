@@ -343,36 +343,41 @@
             color: white; font-size: 0.35em; font-weight: bold; z-index: 1;
         }
 
-        /* ----- MEDIA QUERIES สำหรับมือถือ (ย่อส่วนต่างๆ ลงประมาณ 1/4) ----- */
+        /* ----- MEDIA QUERIES สำหรับมือถือ (ปรับให้เล็กจิ๋วสุดๆ ตามรีเควส) ----- */
         @media (max-width: 850px) {
-            .skills-ui { gap: 10px; bottom: 15px; right: 15px; }
-            .skill-box { width: 75px; height: 75px; font-size: 2.5em; border-width: 2px; border-radius: 8px; }
-            .skill-key { width: 25px; height: 25px; font-size: 0.2em; top: -3px; left: -3px; }
+            .skills-ui { gap: 5px; bottom: 10px; right: 10px; }
+            .skill-box { width: 35px; height: 35px; font-size: 1.2em; border-width: 1px; border-radius: 4px; }
+            .skill-key { width: 12px; height: 12px; font-size: 0.15em; top: -2px; left: -2px; border-width: 1px;}
             
-            #joystickZone { width: 100px; height: 100px; bottom: 20px; left: 20px; }
-            #joystickKnob { width: 40px; height: 40px; }
+            #joystickZone { width: 50px; height: 50px; bottom: 10px; left: 10px; border-width: 1px; }
+            #joystickKnob { width: 20px; height: 20px; box-shadow: 0 0 5px rgba(0, 210, 211, 0.8); }
             
-            #shopUI { top: 60px; padding: 5px 10px; gap: 8px; flex-wrap: wrap; justify-content: center; width: auto; max-width: 90vw;}
-            .shop-btn { padding: 6px 10px; font-size: 0.8em; }
+            #shopUI { top: 30px; padding: 2px 4px; gap: 4px; flex-wrap: wrap; justify-content: center; width: auto; max-width: 90vw; border-width: 1px; border-radius: 4px;}
+            .shop-btn { padding: 3px 5px; font-size: 0.4em; border-radius: 2px;}
+            .shop-cost { font-size: 1em; }
             
-            .ui { top: 130px; right: 10px; }
-            h2 { font-size: 1.1em; }
-            .stat { font-size: 0.85em; margin-bottom: 2px; }
+            .ui { top: 60px; right: 5px; }
+            h2 { font-size: 0.5em; margin-bottom: 2px; }
+            .stat { font-size: 0.4em; margin-bottom: 1px; }
             
-            .objective-ui { top: 220px; right: 10px; }
-            .base-hp { font-size: 0.9em; margin-bottom: 2px; }
+            .objective-ui { top: 100px; right: 5px; }
+            .base-hp { font-size: 0.45em; margin-bottom: 1px; }
             
-            #leaderboardUI { top: 270px; right: 10px; padding: 10px; min-width: 180px; font-size: 0.8em; }
+            #leaderboardUI { top: 125px; right: 5px; padding: 4px; min-width: 90px; font-size: 0.35em; border-width: 1px; border-radius: 3px; }
             
-            #miniMap { width: 120px; height: 120px; top: 10px; left: 10px; }
-            .weapon-ui { top: 140px; left: 10px; font-size: 0.9em; }
+            #miniMap { width: 60px; height: 60px; top: 5px; left: 5px; border-width: 1px; border-radius: 2px; }
+            .weapon-ui { top: 70px; left: 5px; font-size: 0.4em; }
 
-            #btnSettings { padding: 6px 10px; font-size: 0.8em; top: 10px; right: 10px; }
-            #btnFullscreen { padding: 6px 10px; font-size: 0.8em; top: 10px; right: 110px; } /* ปรับตำแหน่งให้พอดีกันในมือถือ */
+            #btnSettings { padding: 3px 5px; font-size: 0.4em; top: 5px; right: 5px; border-width: 1px; border-radius: 2px; }
+            #btnFullscreen { padding: 3px 5px; font-size: 0.4em; top: 5px; right: 55px; border-width: 1px; border-radius: 2px; }
 
-            .lobby-teams { flex-direction: column; gap: 10px; }
-            .team-column { min-height: 100px; padding: 10px; }
-            #mainMenu h1, #lobbyMenu h1 { font-size: 3em; }
+            .lobby-teams { flex-direction: column; gap: 5px; }
+            .team-column { min-height: 80px; padding: 5px; }
+            #mainMenu h1, #lobbyMenu h1 { font-size: 2em; margin-bottom: 10px;}
+            .menu-box { min-width: 250px; padding: 15px; }
+            .menu-box label { font-size: 0.8em; margin-bottom: 5px;}
+            .menu-box select, .menu-box input[type="text"] { font-size: 0.8em; padding: 5px; margin-bottom: 10px;}
+            .menu-box button { font-size: 0.8em; padding: 8px 10px; }
         }
     </style>
 </head>
@@ -892,7 +897,7 @@
             let dx = touch.clientX - joyBaseX;
             let dy = touch.clientY - joyBaseY;
             let rect = joyZone.getBoundingClientRect();
-            let maxDist = rect.width / 2; // ปรับให้คำนวณจากขนาดกว้างจริงอัตโนมัติ
+            let maxDist = rect.width / 2; // คำนวณจากความกว้างจริงบนหน้าจอ (ยืดหยุ่นตามมือถือ/คอม)
             let dist = Math.hypot(dx, dy);
             if (dist > maxDist) {
                 dx = (dx / dist) * maxDist;
