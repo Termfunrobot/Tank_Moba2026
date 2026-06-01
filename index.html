@@ -104,6 +104,7 @@
             text-align: center;
             box-shadow: 0 0 30px rgba(0, 210, 211, 0.2);
             min-width: 450px;
+            max-width: 90vw;
         }
         .menu-box label {
             font-size: 1.2em;
@@ -166,6 +167,7 @@
 
         #lobbyMenu .menu-box {
             min-width: 600px;
+            max-width: 95vw;
         }
         .lobby-teams {
             display: flex;
@@ -259,6 +261,16 @@
         }
         #btnSettings:hover { background: #00d2d3; color: #000; box-shadow: 0 0 10px #00d2d3; }
 
+        /* ปุ่มเต็มหน้าจอ (Fullscreen) */
+        #btnFullscreen {
+            position: absolute; top: 15px; right: 135px; z-index: 100;
+            background: rgba(10, 15, 20, 0.85); color: #00d2d3;
+            border: 1px solid #00d2d3; padding: 8px 15px; border-radius: 5px;
+            font-weight: bold; cursor: pointer; display: none; transition: 0.2s;
+            pointer-events: auto;
+        }
+        #btnFullscreen:hover { background: #00d2d3; color: #000; box-shadow: 0 0 10px #00d2d3; }
+
         /* เพิ่มหน้าต่างตารางคะแนน (Leaderboard) */
         #leaderboardUI {
             position: absolute; 
@@ -311,7 +323,7 @@
             display: none; gap: 20px; z-index: 100; pointer-events: auto;
         }
         .skill-box { 
-            width: 120px; height: 120px; /* ขยายขนาดใหญ่ขึ้น */
+            width: 120px; height: 120px; 
             background: rgba(10,15,20,0.8); border: 3px solid #333; border-radius: 12px; 
             position: relative; display: flex; justify-content: center; align-items: center; 
             font-size: 4em; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
@@ -329,6 +341,38 @@
             background: rgba(0,0,0,0.8); transition: height 0.1s linear; 
             display: flex; justify-content: center; align-items: center; 
             color: white; font-size: 0.35em; font-weight: bold; z-index: 1;
+        }
+
+        /* ----- MEDIA QUERIES สำหรับมือถือ (ย่อส่วนต่างๆ ลงประมาณ 1/4) ----- */
+        @media (max-width: 850px) {
+            .skills-ui { gap: 10px; bottom: 15px; right: 15px; }
+            .skill-box { width: 75px; height: 75px; font-size: 2.5em; border-width: 2px; border-radius: 8px; }
+            .skill-key { width: 25px; height: 25px; font-size: 0.2em; top: -3px; left: -3px; }
+            
+            #joystickZone { width: 100px; height: 100px; bottom: 20px; left: 20px; }
+            #joystickKnob { width: 40px; height: 40px; }
+            
+            #shopUI { top: 60px; padding: 5px 10px; gap: 8px; flex-wrap: wrap; justify-content: center; width: auto; max-width: 90vw;}
+            .shop-btn { padding: 6px 10px; font-size: 0.8em; }
+            
+            .ui { top: 130px; right: 10px; }
+            h2 { font-size: 1.1em; }
+            .stat { font-size: 0.85em; margin-bottom: 2px; }
+            
+            .objective-ui { top: 220px; right: 10px; }
+            .base-hp { font-size: 0.9em; margin-bottom: 2px; }
+            
+            #leaderboardUI { top: 270px; right: 10px; padding: 10px; min-width: 180px; font-size: 0.8em; }
+            
+            #miniMap { width: 120px; height: 120px; top: 10px; left: 10px; }
+            .weapon-ui { top: 140px; left: 10px; font-size: 0.9em; }
+
+            #btnSettings { padding: 6px 10px; font-size: 0.8em; top: 10px; right: 10px; }
+            #btnFullscreen { padding: 6px 10px; font-size: 0.8em; top: 10px; right: 110px; } /* ปรับตำแหน่งให้พอดีกันในมือถือ */
+
+            .lobby-teams { flex-direction: column; gap: 10px; }
+            .team-column { min-height: 100px; padding: 10px; }
+            #mainMenu h1, #lobbyMenu h1 { font-size: 3em; }
         }
     </style>
 </head>
@@ -482,7 +526,8 @@
 
     <div id="gameMessage"></div>
 
-    <!-- ปุ่มตั้งค่า (Settings) -->
+    <!-- ปุ่มตั้งค่า (Settings) และปุ่ม Fullscreen -->
+    <button id="btnFullscreen">🔲 FULLSCREEN</button>
     <button id="btnSettings">⚙️ SETTINGS</button>
 
     <!-- เมนูตั้งค่า (Settings Modal) -->
@@ -761,6 +806,21 @@
             document.getElementById('settingsMenu').style.display = 'flex';
             document.getElementById('zoomSlider').value = cameraZoom;
             document.getElementById('zoomValueDisplay').innerText = cameraZoom.toFixed(1) + 'x';
+        });
+
+        // --- ระบบปุ่ม Fullscreen ---
+        document.getElementById('btnFullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+                document.getElementById('btnFullscreen').innerText = "🔳 EXIT FULL";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    document.getElementById('btnFullscreen').innerText = "🔲 FULLSCREEN";
+                }
+            }
         });
 
         document.getElementById('btnCloseSettings').addEventListener('click', () => {
@@ -1046,6 +1106,7 @@
                     document.getElementById('skillsUI').style.display = 'none';
                     document.getElementById('miniMap').style.display = 'none';
                     document.getElementById('btnSettings').style.display = 'none';
+                    document.getElementById('btnFullscreen').style.display = 'none'; // ซ่อนปุ่ม Fullscreen
                     document.getElementById('joystickZone').style.display = 'none'; // ซ่อนจอย
                     document.getElementById('createRoomBtn').innerText = 'สร้างห้องสู้รบ (HOST)';
                     document.getElementById('createRoomBtn').disabled = false;
@@ -2703,6 +2764,7 @@
             document.getElementById('gameMessage').style.display = 'none';
             document.getElementById('miniMap').style.display = 'block';
             document.getElementById('btnSettings').style.display = 'block';
+            document.getElementById('btnFullscreen').style.display = 'block'; // แสดงปุ่ม Fullscreen
             document.getElementById('joystickZone').style.display = 'block';
 
             allyBase = new Base(ALLY_BASE_POS.x, ALLY_BASE_POS.y, 'ally');
