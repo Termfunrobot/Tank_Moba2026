@@ -831,7 +831,8 @@
         function updateJoy(touch) {
             let dx = touch.clientX - joyBaseX;
             let dy = touch.clientY - joyBaseY;
-            let maxDist = 75; // ครึ่งหนึ่งของความกว้าง (150/2)
+            let rect = joyZone.getBoundingClientRect();
+            let maxDist = rect.width / 2; // ปรับให้คำนวณจากขนาดกว้างจริงอัตโนมัติ
             let dist = Math.hypot(dx, dy);
             if (dist > maxDist) {
                 dx = (dx / dist) * maxDist;
