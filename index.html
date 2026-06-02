@@ -353,48 +353,48 @@
             color: white; font-size: 0.35em; font-weight: bold; z-index: 1;
         }
 
-        /* ----- MEDIA QUERIES สำหรับมือถือ (ขยายปุ่มและ UI ขึ้น 10 เท่า) ----- */
+        /* ----- MEDIA QUERIES สำหรับมือถือ (ปรับขนาดลดลง 1/5) ----- */
         @media (max-width: 950px), (max-height: 600px) and (orientation: landscape) {
-            /* ขยายปุ่มสกิล 10 เท่า */
-            .skills-ui { gap: 20px; bottom: 30px; right: 30px; }
-            .skill-box { width: 120px; height: 120px; font-size: 4em; border-width: 3px; border-radius: 12px; }
-            .skill-key { width: 35px; height: 35px; font-size: 1em; top: -5px; left: -5px; border-width: 2px;}
+            /* ลดขนาดปุ่มสกิลให้เล็กลงตามสัดส่วน */
+            .skills-ui { gap: 10px; bottom: 20px; right: 20px; }
+            .skill-box { width: 80px; height: 80px; font-size: 2.5em; border-width: 2px; border-radius: 10px; }
+            .skill-key { width: 25px; height: 25px; font-size: 0.8em; top: -5px; left: -5px; border-width: 1px;}
 
-            /* ขยายคันโยก (Joystick) 10 เท่า */
-            #joystickZone { width: 150px; height: 150px; bottom: 40px; left: 40px; border-width: 2px; }
-            #joystickKnob { width: 60px; height: 60px; box-shadow: 0 0 15px rgba(0, 210, 211, 0.8); }
+            /* ลดขนาดคันโยก (Joystick) */
+            #joystickZone { width: 110px; height: 110px; bottom: 30px; left: 30px; border-width: 2px; }
+            #joystickKnob { width: 45px; height: 45px; box-shadow: 0 0 10px rgba(0, 210, 211, 0.8); }
 
-            /* ขยายร้านค้าและปุ่มร้านค้า 10 เท่า */
-            #shopUI { top: 15px; padding: 10px 20px; gap: 15px; flex-wrap: wrap; justify-content: center; width: auto; max-width: 90vw; border-width: 2px; border-radius: 8px;}
-            .shop-btn { padding: 8px 15px; font-size: 0.95em; border-radius: 5px;}
-            .shop-cost { font-size: 1.1em; }
+            /* ลดขนาดร้านค้าและปุ่มร้านค้า */
+            #shopUI { top: 10px; padding: 8px 12px; gap: 8px; flex-wrap: wrap; justify-content: center; width: auto; max-width: 95vw; border-width: 2px; border-radius: 8px;}
+            .shop-btn { padding: 6px 10px; font-size: 0.85em; border-radius: 5px;}
+            .shop-cost { font-size: 1em; }
 
-            /* ขยายปุ่มการตั้งค่าด้านขวาบน 10 เท่า */
-            #btnSettings { padding: 8px 15px; font-size: 1em; top: 15px; right: 15px; border-width: 1px; border-radius: 5px; }
-            #btnFullscreen { padding: 8px 15px; font-size: 1em; top: 15px; right: 135px; border-width: 1px; border-radius: 5px; }
-            #btnToggleUI { padding: 8px 15px; font-size: 1em; top: 55px; right: 15px; border-width: 1px; border-radius: 5px; }
+            /* ลดขนาดปุ่มการตั้งค่าด้านขวาบน */
+            #btnSettings { padding: 6px 10px; font-size: 0.85em; top: 10px; right: 10px; border-width: 1px; border-radius: 5px; }
+            #btnFullscreen { padding: 6px 10px; font-size: 0.85em; top: 10px; right: 105px; border-width: 1px; border-radius: 5px; }
+            #btnToggleUI { padding: 6px 10px; font-size: 0.85em; top: 45px; right: 10px; border-width: 1px; border-radius: 5px; }
 
-            /* ขยายปุ่มและกล่องข้อความในหน้าเมนูหลัก 10 เท่า */
-            .lobby-teams { flex-direction: column; gap: 10px; } /* ปรับเป็นแนวตั้งให้เหมาะกับจอมือถือ */
-            .team-column { min-height: 150px; padding: 15px; }
-            #mainMenu h1, #lobbyMenu h1 { font-size: 3em; margin-bottom: 15px;}
-            .menu-box { min-width: 300px; padding: 20px; max-width: 85vw; }
-            .menu-box label { font-size: 1.2em; margin-bottom: 5px;}
-            .menu-box select, .menu-box input[type="text"] { font-size: 1.1em; padding: 10px; margin-bottom: 15px;}
-            .menu-box button { font-size: 1.2em; padding: 15px 20px; }
+            /* ลดขนาดปุ่มและกล่องข้อความในหน้าเมนูหลัก */
+            .lobby-teams { flex-direction: column; gap: 10px; }
+            .team-column { min-height: 120px; padding: 10px; }
+            #mainMenu h1, #lobbyMenu h1 { font-size: 2.2em; margin-bottom: 15px;}
+            .menu-box { min-width: 280px; padding: 15px; max-width: 90vw; }
+            .menu-box label { font-size: 1.1em; margin-bottom: 5px;}
+            .menu-box select, .menu-box input[type="text"] { font-size: 1em; padding: 8px; margin-bottom: 10px;}
+            .menu-box button { font-size: 1.1em; padding: 10px 15px; }
 
-            /* ขยาย UI ข้อความ แผนที่ และอื่นๆ ให้มองเห็นได้ชัดเจนสอดคล้องกับปุ่ม */
-            .ui { top: 60px; right: 20px; }
-            h2 { font-size: 1.2em; margin-bottom: 5px; }
-            .stat { font-size: 1.1em; margin-bottom: 5px; }
+            /* ลดขนาด UI ข้อความ แผนที่ และอื่นๆ */
+            .ui { top: 50px; right: 15px; }
+            h2 { font-size: 1em; margin-bottom: 5px; }
+            .stat { font-size: 0.9em; margin-bottom: 5px; }
 
-            .objective-ui { top: 210px; right: 20px; }
-            .base-hp { font-size: 1.1em; margin-bottom: 5px; }
+            .objective-ui { top: 170px; right: 15px; }
+            .base-hp { font-size: 0.9em; margin-bottom: 5px; }
 
-            #leaderboardUI { top: 290px; right: 20px; padding: 10px; min-width: 200px; font-size: 1em; border-width: 2px; border-radius: 5px; }
+            #leaderboardUI { top: 230px; right: 15px; padding: 8px; min-width: 150px; font-size: 0.85em; border-width: 2px; border-radius: 5px; }
 
-            #miniMap { width: 120px; height: 120px; top: 20px; left: 20px; border-width: 2px; border-radius: 5px; }
-            .weapon-ui { top: 240px; left: 20px; font-size: 1.2em; }
+            #miniMap { width: 100px; height: 100px; top: 15px; left: 15px; border-width: 2px; border-radius: 5px; }
+            .weapon-ui { top: 200px; left: 15px; font-size: 1em; }
         }
     </style>
 </head>
@@ -592,8 +592,20 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
 
+        // --- ระบบบังคับเต็มหน้าจออัตโนมัติ ---
+        function tryEnterFullscreen() {
+            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`ไม่สามารถเปิดโหมดเต็มหน้าจอได้อัตโนมัติ: ${err.message}`);
+                });
+                const btnFullscreen = document.getElementById('btnFullscreen');
+                if(btnFullscreen) btnFullscreen.innerText = "🔳 EXIT FULL";
+            }
+        }
+
         // Cover Screen Event
         document.getElementById('btnEnterMenu').addEventListener('click', () => {
+            tryEnterFullscreen();
             document.getElementById('coverScreen').style.display = 'none';
             document.getElementById('mainMenu').style.display = 'flex';
         });
@@ -947,7 +959,7 @@
             let dx = touch.clientX - joyBaseX;
             let dy = touch.clientY - joyBaseY;
             let rect = joyZone.getBoundingClientRect();
-            let maxDist = rect.width / 2; // คำนวณจากความกว้างจริงบนหน้าจอ (ยืดหยุ่นตามมือถือ/คอม)
+            let maxDist = rect.width / 2; 
             let dist = Math.hypot(dx, dy);
             if (dist > maxDist) {
                 dx = (dx / dist) * maxDist;
@@ -1161,9 +1173,9 @@
                     document.getElementById('skillsUI').style.display = 'none';
                     document.getElementById('miniMap').style.display = 'none';
                     document.getElementById('btnSettings').style.display = 'none';
-                    document.getElementById('btnFullscreen').style.display = 'none'; // ซ่อนปุ่ม Fullscreen
-                    document.getElementById('btnToggleUI').style.display = 'none'; // ซ่อนปุ่ม Toggle UI
-                    document.getElementById('joystickZone').style.display = 'none'; // ซ่อนจอย
+                    document.getElementById('btnFullscreen').style.display = 'none';
+                    document.getElementById('btnToggleUI').style.display = 'none';
+                    document.getElementById('joystickZone').style.display = 'none';
                     document.getElementById('createRoomBtn').innerText = 'สร้างห้องสู้รบ (HOST)';
                     document.getElementById('createRoomBtn').disabled = false;
                     document.getElementById('joinRoomBtn').innerText = 'เข้าร่วมห้อง (JOIN)';
@@ -1688,25 +1700,25 @@
 
         class Tank extends Entity {
             constructor(x, y, type, assignTeam) {
-                let initialHp = 2000;
+                let initialHp = 6000;
                 let spd = 3.5;
                 let dmgM = 1.0;
                 let baseRadius = 30;
 
                 if (type === 'juggernaut') { 
-                    initialHp = 5200; spd = 2.5; dmgM = 0.6; baseRadius = 35;
+                    initialHp = 15600; spd = 2.5; dmgM = 0.6; baseRadius = 35;
                 }
                 else if (type === 'striker') { 
-                    initialHp = 1600; spd = 3.2; dmgM = 2.2; baseRadius = 30;
+                    initialHp = 4800; spd = 3.2; dmgM = 2.2; baseRadius = 30;
                 }
                 else if (type === 'phantom') { 
-                    initialHp = 800; spd = 5.0; dmgM = 0.8; baseRadius = 25;
+                    initialHp = 2400; spd = 5.0; dmgM = 0.8; baseRadius = 25;
                 }
                 else if (type === 'titan') {
-                    initialHp = 3000; spd = 2.8; dmgM = 1.3; baseRadius = 32;
+                    initialHp = 9000; spd = 2.8; dmgM = 1.3; baseRadius = 32;
                 }
                 else if (type === 'raptor') {
-                    initialHp = 2200; spd = 4.2; dmgM = 1.5; baseRadius = 28;
+                    initialHp = 6600; spd = 4.2; dmgM = 1.5; baseRadius = 28;
                 }
 
                 super(x, y, baseRadius, assignTeam, initialHp, initialHp); 
@@ -1739,6 +1751,7 @@
                 this.legPhase = Math.random() * Math.PI * 2; 
 
                 this.deathCount = 0; 
+                this.state = 'ATTACKING';
                 
                 this.isTeammate = false;
                 this.isBot = false;
@@ -1758,7 +1771,7 @@
                 this.xp += amount;
                 if (this.xp >= this.xpToNext) {
                     this.level++; this.xp -= this.xpToNext; this.xpToNext = Math.floor(this.xpToNext * 1.5);
-                    this.maxHp += 300; 
+                    this.maxHp += 900; 
                     
                     if(!this.isTeammate) document.getElementById('playerLevel').innerText = this.level;
                     
@@ -1781,7 +1794,7 @@
             forceLevelUp(levels) {
                 if (this.isTeammate && !this.isBot) return; 
                 this.level += levels;
-                this.maxHp += 300 * levels;
+                this.maxHp += 900 * levels;
                 
                 if(!this.isTeammate) {
                     document.getElementById('playerLevel').innerText = this.level;
@@ -1926,7 +1939,6 @@
                     this.shoot();
                 } else {
                     if (isJoyPressed) {
-                        // ถ้าใช้อยจอยบังคับ และไม่มีศัตรู ให้หันป้อมไปทางที่วิ่ง
                         this.turretAngle = this.angle;
                     } else {
                         let worldMouseX = (mouse.x / cameraZoom) + cameraX;
@@ -1954,6 +1966,7 @@
                         this.skills[1].active = false;
                         this.skills[2].active = false;
                         this.waypoints = null; 
+                        this.state = 'ATTACKING';
                     }
                     return;
                 }
@@ -1978,6 +1991,46 @@
                     if (Math.random() < 0.4) particles.push(new BuffParticle(this.x, this.y, '#00d2d3'));
                 } else { 
                     this.skills[2].active = false; 
+                }
+
+                if (this.state === undefined) this.state = 'ATTACKING';
+                
+                if (this.hp < this.maxHp * 0.3 && this.state === 'ATTACKING') {
+                    this.state = 'RETREATING';
+                }
+                if (this.hp >= this.maxHp && this.state === 'RETREATING') {
+                    this.state = 'ATTACKING';
+                    this.currentWp = 0; 
+                }
+
+                if (this.state === 'RETREATING') {
+                    let targetBaseX = this.team === 'ally' ? ALLY_BASE_POS.x : ENEMY_BASE_POS.x;
+                    let targetBaseY = this.team === 'ally' ? ALLY_BASE_POS.y : ENEMY_BASE_POS.y;
+                    let distToBase = Math.hypot(targetBaseX - this.x, targetBaseY - this.y);
+                    
+                    if (distToBase < 300) {
+                        if (!this.lastHealTime || now - this.lastHealTime > 1000) {
+                            let healAmount = Math.floor(this.maxHp * 0.1);
+                            this.hp = Math.min(this.maxHp, this.hp + healAmount);
+                            floatingTexts.push(new FloatingText(this.x, this.y - 60, `+${healAmount}`, "#2ecc71"));
+                            this.lastHealTime = now;
+                        }
+                    } else {
+                        this.angle = Math.atan2(targetBaseY - this.y, targetBaseX - this.x);
+                        this.turretAngle = this.angle;
+                        this.speed = this.maxSpeed * 1.2; 
+                    }
+                    
+                    this.x += Math.cos(this.angle) * this.speed;
+                    this.y += Math.sin(this.angle) * this.speed;
+                    if(Math.abs(this.speed) > 0.5) {
+                        this.treadOffset -= this.speed;
+                        this.legPhase += (this.speed / this.maxSpeed) * 0.25;
+                    }
+                    this.x = Math.max(this.radius, Math.min(MAP_SIZE - this.radius, this.x));
+                    this.y = Math.max(this.radius, Math.min(MAP_SIZE - this.radius, this.y));
+                    
+                    return; 
                 }
 
                 let nearestTarget = null; 
@@ -2324,7 +2377,7 @@
             update(entities) {
                 if(!this.isActive) {
                     if (Date.now() > this.respawnTimer) {
-                        this.isActive = true; this.level += 5; this.maxHp += (1000 * difficultyMultiplier); this.hp = this.maxHp;
+                        this.isActive = true; this.level += 5; this.maxHp += (3000 * difficultyMultiplier); this.hp = this.maxHp;
                         this.x = ENEMY_BASE_POS.x; this.y = ENEMY_BASE_POS.y;
                         this.state = 'ATTACKING'; this.currentWp = 0;
                         if (!isMultiplayer || isHost) {
@@ -2578,6 +2631,7 @@
         let spawnerInterval;
 
         document.getElementById('startSoloBtn').addEventListener('click', () => {
+            tryEnterFullscreen();
             updatePlayerName();
             isMultiplayer = false;
             startGameFlow();
@@ -2599,7 +2653,7 @@
             let botId = "bot_" + Math.floor(Math.random() * 100000);
             let botName = "BOT_" + botClass.substring(0,3).toUpperCase() + "_" + Math.floor(Math.random()*100);
             
-            let botHp = botClass === 'juggernaut' ? 5200 : (botClass === 'striker' ? 1600 : (botClass === 'titan' ? 3000 : (botClass === 'raptor' ? 2200 : 800)));
+            let botHp = botClass === 'juggernaut' ? 15600 : (botClass === 'striker' ? 4800 : (botClass === 'titan' ? 9000 : (botClass === 'raptor' ? 6600 : 2400)));
 
             const roomRef = ref(db, `rooms/${roomId}/players/${botId}`);
             await set(roomRef, {
@@ -2620,6 +2674,7 @@
 
         document.getElementById('startLobbyBtn').addEventListener('click', async () => {
             if (!isHost || !isMultiplayer || !roomId || !user) return;
+            tryEnterFullscreen();
             const roomRef = ref(db, `rooms/${roomId}`);
             await update(roomRef, {
                 status: 'playing'
@@ -2634,6 +2689,7 @@
             }
             
             updatePlayerName();
+            tryEnterFullscreen();
             
             document.getElementById('errorText').style.display = 'none';
             document.getElementById('createRoomBtn').innerText = 'กำลังสร้าง...';
@@ -2695,6 +2751,7 @@
             myTeam = 'ally'; 
             
             updatePlayerName();
+            tryEnterFullscreen();
             
             document.getElementById('errorText').style.display = 'none';
             document.getElementById('joinRoomBtn').innerText = 'กำลังเข้าห้อง...';
@@ -2811,17 +2868,16 @@
             
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('lobbyMenu').style.display = 'none';
-            // ซ่อน UI ไว้ก่อนโดยใช้ applyUIToggle() แทนการตั้ง block โดยตรง
             document.getElementById('shopUI').style.display = 'flex';
             document.getElementById('skillsUI').style.display = 'flex'; 
             document.getElementById('gameMessage').style.display = 'none';
             document.getElementById('miniMap').style.display = 'block';
             document.getElementById('btnSettings').style.display = 'block';
-            document.getElementById('btnFullscreen').style.display = 'block'; // แสดงปุ่ม Fullscreen
-            document.getElementById('btnToggleUI').style.display = 'block'; // แสดงปุ่ม Toggle UI
+            document.getElementById('btnFullscreen').style.display = 'block'; 
+            document.getElementById('btnToggleUI').style.display = 'block'; 
             document.getElementById('joystickZone').style.display = 'block';
             
-            showUI = false; // ค่าเริ่มต้นให้ซ่อน UI
+            showUI = false; 
             applyUIToggle();
 
             allyBase = new Base(ALLY_BASE_POS.x, ALLY_BASE_POS.y, 'ally');
@@ -2900,7 +2956,7 @@
                 else lanesToSpawn = ['top', 'mid', 'bot'];
 
                 lanesToSpawn.forEach(lane => {
-                    bosses.push(new BossTank(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y, lane, 5000, bossInitialLevel));
+                    bosses.push(new BossTank(ENEMY_BASE_POS.x, ENEMY_BASE_POS.y, lane, 15000, bossInitialLevel));
                 });
             }
 
@@ -2998,7 +3054,6 @@
 
             let now = Date.now();
             
-            // อัปเดตปุ่มเติมเลือด (ใน UI กล่องสกิล)
             let spaceCd = 10000;
             let spaceElapsed = tank.lastSpaceHeal ? now - tank.lastSpaceHeal : spaceCd;
             let elHealBox = document.getElementById('skillHeal');
@@ -3018,7 +3073,6 @@
                 document.getElementById('weaponUI').style.color = '#00d2d3';
             }
 
-            // อัปเดตกล่องสกิล 1, 2, 3
             for(let i=1; i<=3; i++) {
                 let skill = tank.skills[i];
                 let elBox = document.getElementById(`skill${i}`);
@@ -3411,7 +3465,7 @@
                                     if (pData.level && pData.level > np.level) {
                                         let levelDiff = pData.level - np.level;
                                         np.level = pData.level;
-                                        np.maxHp += 300 * levelDiff;
+                                        np.maxHp += 900 * levelDiff;
                                         let nextWeapon = WEAPONS.slice().reverse().find(w => w.unlockAt <= np.level);
                                         if (nextWeapon) np.weaponIndex = WEAPONS.indexOf(nextWeapon);
                                     }
